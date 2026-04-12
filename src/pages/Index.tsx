@@ -1,16 +1,61 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import DaySimulator from "@/pages/DaySimulator";
+import Rankings from "@/pages/Rankings";
+import Blog from "@/pages/Blog";
 
-// IMPORTANT: Fully REPLACE this with your own code
-const PlaceholderIndex = () => {
-  // PLACEHOLDER: Replace this entire return statement with the user's app.
-  // The inline background color is intentionally not part of the design system.
+type Tab = "simulator" | "rankings" | "blog";
+
+const TABS: { id: Tab; label: string; icon: string }[] = [
+  { id: "simulator", label: "Day Simulator", icon: "🎡" },
+  { id: "rankings", label: "Rankings", icon: "🏆" },
+  { id: "blog", label: "Blog", icon: "📝" },
+];
+
+export default function Index() {
+  const [activeTab, setActiveTab] = useState<Tab>("simulator");
+
   return (
-    <div className="flex min-h-screen items-center justify-center" style={{ backgroundColor: '#fcfbf8' }}>
-      <img data-lovable-blank-page-placeholder="REMOVE_THIS" src="/placeholder.svg" alt="Your app will live here!" />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="bg-header sticky top-0 z-50 shadow-lg">
+        {/* Top bar */}
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+          <h1 className="font-display text-3xl md:text-4xl text-header-foreground tracking-wide">
+            <span className="text-header-accent">Theme Park</span> Data Hub
+          </h1>
+        </div>
+        {/* Tab Navigation */}
+        <nav className="border-t border-header-foreground/10">
+          <div className="max-w-7xl mx-auto px-4 flex">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`font-display text-lg md:text-xl px-5 py-3 transition-all border-b-3 ${
+                  activeTab === tab.id
+                    ? "text-header-accent border-b-2 border-header-accent"
+                    : "text-header-foreground/70 border-b-2 border-transparent hover:text-header-foreground hover:border-header-foreground/30"
+                }`}
+              >
+                <span className="mr-1.5">{tab.icon}</span>
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </nav>
+      </header>
+
+      {/* Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8">
+        {activeTab === "simulator" && <DaySimulator />}
+        {activeTab === "rankings" && <Rankings />}
+        {activeTab === "blog" && <Blog />}
+      </main>
+
+      {/* Footer */}
+      <footer className="bg-header text-header-foreground/50 text-center py-4 font-body text-sm mt-8">
+        Theme Park Data Hub © 2026
+      </footer>
     </div>
   );
-};
-
-const Index = PlaceholderIndex;
-
-export default Index;
+}
