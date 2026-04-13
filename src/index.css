@@ -7,88 +7,88 @@
 @layer base {
   :root {
     --background: 0 0% 98%;
-    --foreground: 220 20% 20%;
+    --foreground: 210 20% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 20%;
+    --card-foreground: 210 20% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 20%;
+    --popover-foreground: 210 20% 20%;
 
-    --primary: 220 55% 45%;
+    --primary: 197 100% 33%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 42 85% 52%;
+    --secondary: 46 65% 52%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 14% 93%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 210 14% 93%;
+    --muted-foreground: 210 10% 46%;
 
-    --accent: 42 90% 55%;
-    --accent-foreground: 220 40% 18%;
+    --accent: 46 65% 52%;
+    --accent-foreground: 210 40% 18%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 345 60% 46%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 13% 90%;
-    --input: 220 13% 90%;
-    --ring: 220 55% 45%;
+    --border: 210 13% 90%;
+    --input: 210 13% 90%;
+    --ring: 197 100% 33%;
 
     --radius: 0.75rem;
 
-    --park-magic: 210 65% 50%;
-    --park-epcot: 280 45% 50%;
-    --park-hollywood: 350 60% 55%;
+    --park-magic: 197 100% 33%;
+    --park-epcot: 345 60% 46%;
+    --park-hollywood: 46 65% 52%;
     --park-animal: 140 45% 42%;
 
-    --header-bg: 220 55% 45%;
+    --header-bg: 197 100% 33%;
     --header-foreground: 0 0% 100%;
-    --header-accent: 42 90% 58%;
+    --header-accent: 46 65% 52%;
 
-    --gold-glow: 42 90% 55%;
-    --gold-soft: 42 70% 78%;
+    --gold-glow: 46 65% 52%;
+    --gold-soft: 46 50% 72%;
 
     --font-display: 'Mouse Memoirs', cursive;
     --font-body: 'Nunito Sans', sans-serif;
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 220 55% 45%;
+    --sidebar-primary: 197 100% 33%;
     --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 220 20% 20%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 220 55% 45%;
+    --sidebar-accent: 216 30% 90%;
+    --sidebar-accent-foreground: 210 20% 20%;
+    --sidebar-border: 210 13% 91%;
+    --sidebar-ring: 197 100% 33%;
   }
 
   .dark {
-    --background: 220 30% 8%;
-    --foreground: 220 10% 92%;
-    --card: 220 30% 12%;
-    --card-foreground: 220 10% 92%;
-    --popover: 220 30% 12%;
-    --popover-foreground: 220 10% 92%;
-    --primary: 42 90% 55%;
-    --primary-foreground: 220 60% 12%;
-    --secondary: 220 40% 22%;
-    --secondary-foreground: 220 10% 92%;
-    --muted: 220 30% 16%;
-    --muted-foreground: 220 10% 60%;
-    --accent: 42 100% 50%;
-    --accent-foreground: 220 60% 12%;
-    --destructive: 0 62.8% 30.6%;
+    --background: 210 30% 8%;
+    --foreground: 210 10% 92%;
+    --card: 210 30% 12%;
+    --card-foreground: 210 10% 92%;
+    --popover: 210 30% 12%;
+    --popover-foreground: 210 10% 92%;
+    --primary: 46 65% 52%;
+    --primary-foreground: 210 60% 12%;
+    --secondary: 197 100% 33%;
+    --secondary-foreground: 210 10% 92%;
+    --muted: 210 30% 16%;
+    --muted-foreground: 210 10% 60%;
+    --accent: 46 80% 50%;
+    --accent-foreground: 210 60% 12%;
+    --destructive: 345 60% 30%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 30% 18%;
-    --input: 220 30% 18%;
-    --ring: 42 90% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --border: 210 30% 18%;
+    --input: 210 30% 18%;
+    --ring: 46 65% 52%;
+    --sidebar-background: 210 5.9% 10%;
+    --sidebar-foreground: 210 4.8% 95.9%;
+    --sidebar-primary: 197 100% 40%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 210 3.7% 15.9%;
+    --sidebar-accent-foreground: 210 4.8% 95.9%;
+    --sidebar-border: 210 3.7% 15.9%;
+    --sidebar-ring: 197 100% 45%;
   }
 }
 
