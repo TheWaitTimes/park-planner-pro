@@ -21,7 +21,7 @@ export default function Index() {
         {/* Top bar */}
         <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
           <h1 className="font-display text-3xl md:text-4xl text-header-foreground tracking-wide">
-            <span className="text-header-accent">Theme Park</span> Data Hub
+            <span className="text-header-accent">Main Street</span> Insights
           </h1>
         </div>
         {/* Tab Navigation */}
@@ -54,7 +54,7 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="bg-header text-header-foreground/50 text-center py-4 font-body text-sm mt-8">
-        Theme Park Data Hub © 2026
+        Main Street Insights © 2026
       </footer>
     </div>
   );
