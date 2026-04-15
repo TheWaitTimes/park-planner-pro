@@ -70,7 +70,10 @@ export default function DayOptimizer() {
   const [startHour, setStartHour] = useState(9);
   const [endHour, setEndHour] = useState(21);
   const [lockedRides, setLockedRides] = useState<Record<string, Period>>({});
+  const [crowdLevel, setCrowdLevel] = useState<"Light" | "Moderate" | "Heavy">("Moderate");
   const [optimizedPlan, setOptimizedPlan] = useState<OptimizedRide[] | null>(null);
+
+  const crowdModifier = crowdLevel === "Light" ? -15 : crowdLevel === "Heavy" ? 15 : 0;
 
   const activePeriods = useMemo(
     () => getActivePeriodsFromRange(startHour, endHour),
