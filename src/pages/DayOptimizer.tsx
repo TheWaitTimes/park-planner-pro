@@ -50,8 +50,9 @@ function formatHour(hour: number): string {
   return `${h}:00 ${period}`;
 }
 
-function avgWait(range: [number, number]): number {
-  return Math.round((range[0] + range[1]) / 2);
+function avgWait(range: [number, number], crowdMod: number = 0): number {
+  const base = Math.round((range[0] + range[1]) / 2);
+  return Math.max(0, base + crowdMod);
 }
 
 interface OptimizedRide {
@@ -69,7 +70,10 @@ export default function DayOptimizer() {
   const [startHour, setStartHour] = useState(9);
   const [endHour, setEndHour] = useState(21);
   const [lockedRides, setLockedRides] = useState<Record<string, Period>>({});
+  const [crowdLevel, setCrowdLevel] = useState<"Light" | "Moderate" | "Heavy">("Moderate");
   const [optimizedPlan, setOptimizedPlan] = useState<OptimizedRide[] | null>(null);
+
+  const crowdModifier = crowdLevel === "Light" ? -15 : crowdLevel === "Heavy" ? 15 : 0;
 
   const activePeriods = useMemo(
     () => getActivePeriodsFromRange(startHour, endHour),
@@ -120,7 +124,7 @@ export default function DayOptimizer() {
       const ride = rides.find((r) => r.id === rideId);
       if (!ride) continue;
       const waitKey = PERIOD_TO_WAIT_KEY[period];
-      const wait = avgWait(ride.waitTimes[waitKey]);
+      const wait = avgWait(ride.waitTimes[waitKey], crowdModifier);
       const totalTime = wait + ride.onRideTime + 5; // 5 min walking
       budgets[period] = (budgets[period] || 0) - totalTime;
       plan.push({
@@ -146,8 +150,8 @@ export default function DayOptimizer() {
         .filter((r) => !usedIds.has(r.id))
         .map((r) => ({
           ...r,
-          avgWait: avgWait(r.waitTimes[waitKey]),
-          totalTime: avgWait(r.waitTimes[waitKey]) + r.onRideTime + 5,
+          avgWait: avgWait(r.waitTimes[waitKey], crowdModifier),
+          totalTime: avgWait(r.waitTimes[waitKey], crowdModifier) + r.onRideTime + 5,
         }))
         .sort((a, b) => a.avgWait - b.avgWait);
 
@@ -168,7 +172,7 @@ export default function DayOptimizer() {
     }
 
     setOptimizedPlan(plan);
-  }, [park, lockedRides, activePeriods, periodMinutes]);
+  }, [park, lockedRides, activePeriods, periodMinutes, crowdModifier]);
 
   // Group optimized plan by period
   const groupedPlan = useMemo(() => {
@@ -267,6 +271,31 @@ export default function DayOptimizer() {
             </div>
           </div>
 
+          {/* Crowd Level */}
+          <div className="bg-card rounded-lg p-5 border border-border">
+            <h3 className="text-2xl font-display text-foreground mb-3">Crowd Level</h3>
+            <div className="flex gap-2">
+              {(["Light", "Moderate", "Heavy"] as const).map((level) => (
+                <button
+                  key={level}
+                  onClick={() => {
+                    setCrowdLevel(level);
+                    setOptimizedPlan(null);
+                  }}
+                  className={`flex-1 py-2 rounded-md text-sm font-body font-semibold transition ${
+                    crowdLevel === level
+                      ? "bg-secondary text-secondary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {level === "Light" ? "🌤️" : level === "Moderate" ? "☁️" : "🌧️"} {level}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground font-body mt-2">
+              {crowdLevel === "Light" ? "Shorter waits (−15 min avg)" : crowdLevel === "Heavy" ? "Longer waits (+15 min avg)" : "Average wait times"}
+            </p>
+          </div>
           {/* Lock Rides */}
           <div>
             <h2 className="text-3xl text-foreground mb-1">Lock Must-Do Rides</h2>
