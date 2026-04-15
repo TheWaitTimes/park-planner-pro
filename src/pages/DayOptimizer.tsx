@@ -50,8 +50,9 @@ function formatHour(hour: number): string {
   return `${h}:00 ${period}`;
 }
 
-function avgWait(range: [number, number]): number {
-  return Math.round((range[0] + range[1]) / 2);
+function avgWait(range: [number, number], crowdMod: number = 0): number {
+  const base = Math.round((range[0] + range[1]) / 2);
+  return Math.max(0, base + crowdMod);
 }
 
 interface OptimizedRide {
