@@ -50,6 +50,7 @@ export default function Index() {
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 py-8">
         {activeTab === "simulator" && <DaySimulator />}
+        {activeTab === "optimizer" && <DayOptimizer />}
         {activeTab === "rankings" && <Rankings />}
         {activeTab === "blog" && <Blog />}
       </main>
