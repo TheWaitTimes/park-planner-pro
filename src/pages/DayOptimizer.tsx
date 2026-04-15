@@ -150,8 +150,8 @@ export default function DayOptimizer() {
         .filter((r) => !usedIds.has(r.id))
         .map((r) => ({
           ...r,
-          avgWait: avgWait(r.waitTimes[waitKey]),
-          totalTime: avgWait(r.waitTimes[waitKey]) + r.onRideTime + 5,
+          avgWait: avgWait(r.waitTimes[waitKey], crowdModifier),
+          totalTime: avgWait(r.waitTimes[waitKey], crowdModifier) + r.onRideTime + 5,
         }))
         .sort((a, b) => a.avgWait - b.avgWait);
 
