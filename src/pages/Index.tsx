@@ -1,12 +1,14 @@
 import { useState } from "react";
 import DaySimulator from "@/pages/DaySimulator";
+import DayOptimizer from "@/pages/DayOptimizer";
 import Rankings from "@/pages/Rankings";
 import Blog from "@/pages/Blog";
 
-type Tab = "simulator" | "rankings" | "blog";
+type Tab = "simulator" | "optimizer" | "rankings" | "blog";
 
 const TABS: { id: Tab; label: string; icon: string }[] = [
   { id: "simulator", label: "Day Simulator", icon: "🎡" },
+  { id: "optimizer", label: "Day Optimizer", icon: "⚡" },
   { id: "rankings", label: "Rankings", icon: "🏆" },
   { id: "blog", label: "Blog", icon: "📝" },
 ];
