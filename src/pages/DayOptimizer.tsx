@@ -124,7 +124,7 @@ export default function DayOptimizer() {
       const ride = rides.find((r) => r.id === rideId);
       if (!ride) continue;
       const waitKey = PERIOD_TO_WAIT_KEY[period];
-      const wait = avgWait(ride.waitTimes[waitKey]);
+      const wait = avgWait(ride.waitTimes[waitKey], crowdModifier);
       const totalTime = wait + ride.onRideTime + 5; // 5 min walking
       budgets[period] = (budgets[period] || 0) - totalTime;
       plan.push({
