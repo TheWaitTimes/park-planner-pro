@@ -271,6 +271,31 @@ export default function DayOptimizer() {
             </div>
           </div>
 
+          {/* Crowd Level */}
+          <div className="bg-card rounded-lg p-5 border border-border">
+            <h3 className="text-2xl font-display text-foreground mb-3">Crowd Level</h3>
+            <div className="flex gap-2">
+              {(["Light", "Moderate", "Heavy"] as const).map((level) => (
+                <button
+                  key={level}
+                  onClick={() => {
+                    setCrowdLevel(level);
+                    setOptimizedPlan(null);
+                  }}
+                  className={`flex-1 py-2 rounded-md text-sm font-body font-semibold transition ${
+                    crowdLevel === level
+                      ? "bg-secondary text-secondary-foreground"
+                      : "bg-muted text-muted-foreground hover:bg-muted/80"
+                  }`}
+                >
+                  {level === "Light" ? "🌤️" : level === "Moderate" ? "☁️" : "🌧️"} {level}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground font-body mt-2">
+              {crowdLevel === "Light" ? "Shorter waits (−15 min avg)" : crowdLevel === "Heavy" ? "Longer waits (+15 min avg)" : "Average wait times"}
+            </p>
+          </div>
           {/* Lock Rides */}
           <div>
             <h2 className="text-3xl text-foreground mb-1">Lock Must-Do Rides</h2>
