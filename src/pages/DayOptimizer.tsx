@@ -172,7 +172,7 @@ export default function DayOptimizer() {
     }
 
     setOptimizedPlan(plan);
-  }, [park, lockedRides, activePeriods, periodMinutes]);
+  }, [park, lockedRides, activePeriods, periodMinutes, crowdModifier]);
 
   // Group optimized plan by period
   const groupedPlan = useMemo(() => {
