@@ -141,23 +141,31 @@ export default function Rankings() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-5xl text-foreground mb-6">{icon} {label}</h1>
+      <h1 className="text-3xl md:text-4xl text-foreground mb-6 font-semibold tracking-tight inline-flex items-center gap-3">
+        <HeaderIcon className="w-7 h-7 text-secondary" strokeWidth={1.75} />
+        {label}
+      </h1>
 
       {/* Category Tabs */}
       <div className="flex gap-2 mb-6">
-        {(Object.keys(CATEGORY_DATA) as RankingCategory[]).map((cat) => (
-          <button
-            key={cat}
-            onClick={() => { setCategory(cat); setQuizStarted(false); }}
-            className={`font-display text-xl px-5 py-2 rounded-lg transition ${
-              category === cat
-                ? "bg-secondary text-secondary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
-            }`}
-          >
-            {CATEGORY_DATA[cat].icon} {cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </button>
-        ))}
+        {(Object.keys(CATEGORY_DATA) as RankingCategory[]).map((cat) => {
+          const Icon = CATEGORY_DATA[cat].icon;
+          const isActive = category === cat;
+          return (
+            <button
+              key={cat}
+              onClick={() => { setCategory(cat); setQuizStarted(false); }}
+              className={`font-body font-medium text-sm px-4 py-2 rounded-md transition inline-flex items-center gap-2 border ${
+                isActive
+                  ? "bg-secondary text-secondary-foreground border-secondary"
+                  : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-secondary/40"
+              }`}
+            >
+              <Icon className="w-4 h-4" strokeWidth={2} />
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
+          );
+        })}
       </div>
 
       {/* Park Filter (rides only) */}
