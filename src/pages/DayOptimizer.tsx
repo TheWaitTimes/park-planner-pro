@@ -1,4 +1,6 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { PARKS, type Ride } from "@/data/parks";
 
 type Slot = "morning" | "afternoon" | "night" | "hop";
@@ -118,6 +120,61 @@ export default function DayOptimizer() {
   const [hours, setHours] = useState(10);
   const [plan, setPlan] = useState<Plan>({ morning: [], afternoon: [], night: [], hop: [] });
   const [report, setReport] = useState<ReportRow[] | null>(null);
+  const [exporting, setExporting] = useState<null | "png" | "pdf">(null);
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const captureReport = useCallback(async () => {
+    const node = reportRef.current;
+    if (!node) return null;
+    const bg = getComputedStyle(document.body).backgroundColor || "#ffffff";
+    return await html2canvas(node, {
+      backgroundColor: bg,
+      scale: 2,
+      useCORS: true,
+    });
+  }, []);
+
+  const downloadPNG = useCallback(async () => {
+    setExporting("png");
+    try {
+      const canvas = await captureReport();
+      if (!canvas) return;
+      const link = document.createElement("a");
+      link.download = `day-optimizer-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } finally {
+      setExporting(null);
+    }
+  }, [captureReport, primaryPark]);
+
+  const downloadPDF = useCallback(async () => {
+    setExporting("pdf");
+    try {
+      const canvas = await captureReport();
+      if (!canvas) return;
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 24;
+      const imgW = pageW - margin * 2;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      let heightLeft = imgH;
+      let position = margin;
+      pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
+      heightLeft -= pageH - margin * 2;
+      while (heightLeft > 0) {
+        position = margin - (imgH - heightLeft);
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
+        heightLeft -= pageH - margin * 2;
+      }
+      pdf.save(`day-optimizer-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+    } finally {
+      setExporting(null);
+    }
+  }, [captureReport, primaryPark]);
 
   const primaryRides = PARKS[primaryPark]?.rides ?? [];
   const hopRides = PARKS[hopPark]?.rides ?? [];
@@ -362,8 +419,33 @@ export default function DayOptimizer() {
 
           {report && groupedReport && difficulty && (
             <div className="space-y-4">
-              {/* Summary */}
-              <div className="bg-card rounded-lg border border-border p-4 space-y-3">
+              {/* Download actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={downloadPNG}
+                  disabled={exporting !== null}
+                  className="flex-1 bg-primary text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-wait"
+                >
+                  {exporting === "png" ? "Generating…" : "⬇ Download PNG"}
+                </button>
+                <button
+                  onClick={downloadPDF}
+                  disabled={exporting !== null}
+                  className="flex-1 bg-primary text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-wait"
+                >
+                  {exporting === "pdf" ? "Generating…" : "⬇ Download PDF"}
+                </button>
+              </div>
+
+              <div ref={reportRef} className="space-y-4 bg-background p-3 rounded-lg">
+                <div className="text-center pb-2 border-b border-border">
+                  <div className="font-display text-2xl text-foreground">Day Optimizer Report</div>
+                  <div className="text-xs font-body text-muted-foreground">
+                    {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h
+                  </div>
+                </div>
+                {/* Summary */}
+                <div className="bg-card rounded-lg border border-border p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="text-center">
                     <div className="text-xs font-body text-muted-foreground">Total Rides</div>
@@ -575,6 +657,7 @@ export default function DayOptimizer() {
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
 
