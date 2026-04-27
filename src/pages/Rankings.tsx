@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { Ticket, Building2, IceCream, type LucideIcon } from "lucide-react";
 import { RIDES, RESORTS, SNACKS, type RankingItem } from "@/data/rankings";
 
 type RankingCategory = "rides" | "resorts" | "snacks";
@@ -40,10 +41,10 @@ function generatePairs(n: number, maxPairs: number): [number, number][] {
   return all.slice(0, Math.min(maxPairs, all.length));
 }
 
-const CATEGORY_DATA: Record<RankingCategory, { items: RankingItem[]; nameKey: string; label: string; icon: string }> = {
-  rides: { items: RIDES, nameKey: "name", label: "Ride Rankings", icon: "🎢" },
-  resorts: { items: RESORTS, nameKey: "name", label: "Resort Rankings", icon: "🏨" },
-  snacks: { items: SNACKS, nameKey: "name", label: "Snack Rankings", icon: "🍦" },
+const CATEGORY_DATA: Record<RankingCategory, { items: RankingItem[]; nameKey: string; label: string; icon: LucideIcon }> = {
+  rides: { items: RIDES, nameKey: "name", label: "Ride Rankings", icon: Ticket },
+  resorts: { items: RESORTS, nameKey: "name", label: "Resort Rankings", icon: Building2 },
+  snacks: { items: SNACKS, nameKey: "name", label: "Snack Rankings", icon: IceCream },
 };
 
 const PARK_LOCATIONS = ["All Parks", ...new Set([...RIDES, ...RESORTS, ...SNACKS].map((i) => i.parkLocation))];
@@ -58,7 +59,7 @@ export default function Rankings() {
   const [pairIdx, setPairIdx] = useState(0);
   const [quizStarted, setQuizStarted] = useState(false);
 
-  const { items, label, icon } = CATEGORY_DATA[category];
+  const { items, label, icon: HeaderIcon } = CATEGORY_DATA[category];
 
   const filteredItems = useMemo(() => {
     if (parkFilter === "All Parks") return items;
@@ -140,23 +141,31 @@ export default function Rankings() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-5xl text-foreground mb-6">{icon} {label}</h1>
+      <h1 className="text-3xl md:text-4xl text-foreground mb-6 font-semibold tracking-tight inline-flex items-center gap-3">
+        <HeaderIcon className="w-7 h-7 text-secondary" strokeWidth={1.75} />
+        {label}
+      </h1>
 
       {/* Category Tabs */}
       <div className="flex gap-2 mb-6">
-        {(Object.keys(CATEGORY_DATA) as RankingCategory[]).map((cat) => (
-          <button
-            key={cat}
-            onClick={() => { setCategory(cat); setQuizStarted(false); }}
-            className={`font-display text-xl px-5 py-2 rounded-lg transition ${
-              category === cat
-                ? "bg-secondary text-secondary-foreground"
-                : "bg-muted text-muted-foreground hover:bg-muted/80"
-            }`}
-          >
-            {CATEGORY_DATA[cat].icon} {cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </button>
-        ))}
+        {(Object.keys(CATEGORY_DATA) as RankingCategory[]).map((cat) => {
+          const Icon = CATEGORY_DATA[cat].icon;
+          const isActive = category === cat;
+          return (
+            <button
+              key={cat}
+              onClick={() => { setCategory(cat); setQuizStarted(false); }}
+              className={`font-body font-medium text-sm px-4 py-2 rounded-md transition inline-flex items-center gap-2 border ${
+                isActive
+                  ? "bg-secondary text-secondary-foreground border-secondary"
+                  : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-secondary/40"
+              }`}
+            >
+              <Icon className="w-4 h-4" strokeWidth={2} />
+              {cat.charAt(0).toUpperCase() + cat.slice(1)}
+            </button>
+          );
+        })}
       </div>
 
       {/* Park Filter (rides only) */}

@@ -1,6 +1,11 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import {
+  Sun, CloudSun, Moon, Shuffle, Castle, Globe, Clapperboard, Trees,
+  BarChart3, TrendingUp, Layers, Play, Download, Ticket,
+  type LucideIcon,
+} from "lucide-react";
 import { PARKS, type Ride } from "@/data/parks";
 
 type Slot = "morning" | "afternoon" | "night" | "hop";
@@ -12,11 +17,11 @@ const SLOT_LABELS: Record<Slot, string> = {
   hop: "Afternoon Park Hop",
 };
 
-const SLOT_ICONS: Record<Slot, string> = {
-  morning: "☀️",
-  afternoon: "🌤️",
-  night: "🌙",
-  hop: "🔀",
+const SLOT_ICONS: Record<Slot, LucideIcon> = {
+  morning: Sun,
+  afternoon: CloudSun,
+  night: Moon,
+  hop: Shuffle,
 };
 
 const SLOT_DESCRIPTIONS: Record<Slot, string> = {
@@ -47,11 +52,11 @@ const SLOT_WAIT_MULTIPLIER: Record<Slot, number> = {
   hop: 1.1,
 };
 
-const PARK_OPTIONS = [
-  { name: "Magic Kingdom", icon: "🏰" },
-  { name: "EPCOT", icon: "⚪" },
-  { name: "Hollywood Studios", icon: "🎬" },
-  { name: "Animal Kingdom", icon: "🌳" },
+const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
+  { name: "Magic Kingdom", icon: Castle },
+  { name: "EPCOT", icon: Globe },
+  { name: "Hollywood Studios", icon: Clapperboard },
+  { name: "Animal Kingdom", icon: Trees },
 ];
 
 interface PlannedRide {
@@ -233,6 +238,7 @@ export default function DayOptimizer() {
     const sourceRides = isHop ? hopRides : primaryRides;
     const planned = plan[slot];
     const available = sourceRides.filter((r) => !planned.some((p) => p.rideId === r.id));
+    const SlotIcon = SLOT_ICONS[slot];
 
     return (
       <div
@@ -242,8 +248,9 @@ export default function DayOptimizer() {
         }`}
       >
         <div className="flex items-baseline justify-between mb-1">
-          <h3 className="text-2xl font-display text-foreground">
-            {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+          <h3 className="text-base font-display font-semibold text-foreground inline-flex items-center gap-2">
+            <SlotIcon className="w-4 h-4 text-secondary" strokeWidth={2} />
+            {SLOT_LABELS[slot]}
           </h3>
           <span className="text-xs text-muted-foreground font-body">
             {planned.length} ride{planned.length !== 1 ? "s" : ""}
@@ -296,8 +303,8 @@ export default function DayOptimizer() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-5xl md:text-6xl text-foreground mb-2">Day Optimizer</h1>
-      <p className="font-body text-muted-foreground mb-8">
+      <h1 className="text-3xl md:text-4xl text-foreground mb-2 font-semibold tracking-tight">Day Optimizer</h1>
+      <p className="font-body text-muted-foreground mb-8 max-w-2xl">
         Build your dream day — add rides to each part of the day, set your conditions, and run the report.
       </p>
 
@@ -321,7 +328,7 @@ export default function DayOptimizer() {
                 >
                   {PARK_OPTIONS.map((p) => (
                     <option key={p.name} value={p.name}>
-                      {p.icon} {p.name}
+                      {p.name}
                     </option>
                   ))}
                 </select>
@@ -339,7 +346,7 @@ export default function DayOptimizer() {
                 >
                   {PARK_OPTIONS.filter((p) => p.name !== primaryPark).map((p) => (
                     <option key={p.name} value={p.name}>
-                      {p.icon} {p.name}
+                      {p.name}
                     </option>
                   ))}
                 </select>
@@ -412,9 +419,10 @@ export default function DayOptimizer() {
           <button
             onClick={runReport}
             disabled={totalRidesPlanned(plan) === 0}
-            className="w-full bg-secondary text-secondary-foreground font-display text-2xl py-4 rounded-lg hover:opacity-90 transition shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-secondary text-secondary-foreground font-body font-semibold text-base py-3.5 rounded-md hover:bg-secondary/90 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
           >
-            ▶ Run Report
+            <Play className="w-4 h-4" strokeWidth={2.5} />
+            Run Report
           </button>
 
           {report && groupedReport && difficulty && (
@@ -424,16 +432,18 @@ export default function DayOptimizer() {
                 <button
                   onClick={downloadPNG}
                   disabled={exporting !== null}
-                  className="flex-1 bg-primary text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-wait"
+                  className="flex-1 border border-border bg-card text-foreground font-body font-medium text-sm py-2.5 rounded-md hover:bg-muted transition disabled:opacity-50 disabled:cursor-wait inline-flex items-center justify-center gap-1.5"
                 >
-                  {exporting === "png" ? "Generating…" : "⬇ Download PNG"}
+                  <Download className="w-3.5 h-3.5" strokeWidth={2} />
+                  {exporting === "png" ? "Generating…" : "PNG"}
                 </button>
                 <button
                   onClick={downloadPDF}
                   disabled={exporting !== null}
-                  className="flex-1 bg-primary text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-wait"
+                  className="flex-1 border border-border bg-card text-foreground font-body font-medium text-sm py-2.5 rounded-md hover:bg-muted transition disabled:opacity-50 disabled:cursor-wait inline-flex items-center justify-center gap-1.5"
                 >
-                  {exporting === "pdf" ? "Generating…" : "⬇ Download PDF"}
+                  <Download className="w-3.5 h-3.5" strokeWidth={2} />
+                  {exporting === "pdf" ? "Generating…" : "PDF"}
                 </button>
               </div>
 
@@ -469,8 +479,11 @@ export default function DayOptimizer() {
 
               {/* Per-slot summary */}
               <div className="bg-card rounded-lg border border-border overflow-hidden">
-                <div className="bg-primary/10 px-4 py-2 border-b border-border">
-                  <h3 className="font-display text-lg text-foreground">📊 Per-Slot Summary</h3>
+                <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                  <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-secondary" strokeWidth={2} />
+                    Per-Slot Summary
+                  </h3>
                 </div>
                 <div className="divide-y divide-border">
                   {SLOT_ORDER.map((slot) => {
@@ -481,8 +494,9 @@ export default function DayOptimizer() {
                     return (
                       <div key={`sum-${slot}`} className="px-4 py-2 flex items-center gap-2 text-sm font-body">
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-foreground truncate">
-                            {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                          <div className="font-semibold text-foreground truncate inline-flex items-center gap-2">
+                            {(() => { const I = SLOT_ICONS[slot]; return <I className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />; })()}
+                            {SLOT_LABELS[slot]}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {count} ride{count !== 1 ? "s" : ""}
@@ -509,17 +523,22 @@ export default function DayOptimizer() {
                 const maxTotal = Math.max(1, ...slotTotals.map((s) => s.total));
                 return (
                   <div className="bg-card rounded-lg border border-border overflow-hidden">
-                    <div className="bg-primary/10 px-4 py-2 border-b border-border">
-                      <h3 className="font-display text-lg text-foreground">📈 Wait Time by Slot</h3>
+                    <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                      <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-secondary" strokeWidth={2} />
+                        Wait Time by Slot
+                      </h3>
                     </div>
                     <div className="p-4 space-y-3">
                       {slotTotals.map(({ slot, total }) => {
                         const pct = (total / maxTotal) * 100;
+                        const I = SLOT_ICONS[slot];
                         return (
                           <div key={`bar-${slot}`} className="space-y-1">
                             <div className="flex items-center justify-between text-xs font-body">
-                              <span className="font-semibold text-foreground">
-                                {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                              <span className="font-semibold text-foreground inline-flex items-center gap-1.5">
+                                <I className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
+                                {SLOT_LABELS[slot]}
                               </span>
                               <span className="text-secondary font-display">{total}m</span>
                             </div>
@@ -558,20 +577,25 @@ export default function DayOptimizer() {
                 if (!hasAny) return null;
                 return (
                   <div className="bg-card rounded-lg border border-border overflow-hidden">
-                    <div className="bg-primary/10 px-4 py-2 border-b border-border">
-                      <h3 className="font-display text-lg text-foreground">📊 Ride Contribution by Slot</h3>
-                      <p className="text-xs font-body text-muted-foreground">
+                    <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                      <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-secondary" strokeWidth={2} />
+                        Ride Contribution by Slot
+                      </h3>
+                      <p className="text-xs font-body text-muted-foreground mt-0.5">
                         Each segment = one ride's expected wait
                       </p>
                     </div>
                     <div className="p-4 space-y-4">
                       {slotData.map(({ slot, rows, total }) => {
                         const slotPct = (total / maxTotal) * 100;
+                        const I = SLOT_ICONS[slot];
                         return (
                           <div key={`stack-${slot}`} className="space-y-1.5">
                             <div className="flex items-center justify-between text-xs font-body">
-                              <span className="font-semibold text-foreground">
-                                {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                              <span className="font-semibold text-foreground inline-flex items-center gap-1.5">
+                                <I className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
+                                {SLOT_LABELS[slot]}
                               </span>
                               <span className="text-secondary font-display">
                                 {rows.length === 0 ? "—" : `${total}m`}
@@ -631,11 +655,13 @@ export default function DayOptimizer() {
               {SLOT_ORDER.map((slot) => {
                 const rows = groupedReport[slot];
                 if (rows.length === 0) return null;
+                const I = SLOT_ICONS[slot];
                 return (
                   <div key={slot} className="bg-card rounded-lg border border-border overflow-hidden">
-                    <div className="bg-primary/10 px-4 py-2 border-b border-border">
-                      <h3 className="font-display text-lg text-foreground">
-                        {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                    <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                      <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                        <I className="w-4 h-4 text-secondary" strokeWidth={2} />
+                        {SLOT_LABELS[slot]}
                       </h3>
                     </div>
                     <div className="divide-y divide-border">
@@ -663,7 +689,7 @@ export default function DayOptimizer() {
 
           {!report && (
             <div className="bg-card rounded-lg border border-border p-6 text-center">
-              <div className="text-4xl mb-2">🎢</div>
+              <Ticket className="w-8 h-8 mx-auto mb-2 text-muted-foreground" strokeWidth={1.5} />
               <p className="text-sm font-body text-muted-foreground">
                 Add rides to your day, set your conditions, then run the report.
               </p>

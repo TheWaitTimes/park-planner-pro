@@ -1,5 +1,8 @@
 import { useReducer, useState, useEffect, useMemo } from "react";
 import {
+  Castle, Globe, Clapperboard, Trees, CloudRain, Star, type LucideIcon,
+} from "lucide-react";
+import {
   simulationReducer,
   initialSimulationState,
 } from "@/simulation/simulationReducer";
@@ -29,11 +32,11 @@ function formatHourToEST(hour: number): string {
   return `${hour12}:00 ${period}`;
 }
 
-const PARK_OPTIONS = [
-  { name: "Magic Kingdom", icon: "🏰" },
-  { name: "EPCOT", icon: "⚪" },
-  { name: "Hollywood Studios", icon: "🗼" },
-  { name: "Animal Kingdom", icon: "🌳" },
+const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
+  { name: "Magic Kingdom", icon: Castle },
+  { name: "EPCOT", icon: Globe },
+  { name: "Hollywood Studios", icon: Clapperboard },
+  { name: "Animal Kingdom", icon: Trees },
 ];
 
 export default function DaySimulator() {
@@ -110,7 +113,7 @@ export default function DaySimulator() {
   if (state.status === "ended") {
     return (
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-5xl text-foreground mb-6">Day Summary</h1>
+        <h1 className="text-3xl md:text-4xl text-foreground mb-6 font-semibold tracking-tight">Day Summary</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-card rounded-lg p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Parks Visited</div>
@@ -158,26 +161,30 @@ export default function DaySimulator() {
   if (state.status === "setup") {
     return (
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-5xl md:text-6xl text-foreground mb-8">Disney Day Simulator</h1>
+        <h1 className="text-3xl md:text-4xl text-foreground mb-8 font-semibold tracking-tight">Disney Day Simulator</h1>
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Park Selection */}
           <div className="flex-1">
-            <h2 className="text-3xl text-foreground mb-4">Select Your Park</h2>
+            <h2 className="text-lg text-foreground mb-4 font-semibold">Select Your Park</h2>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              {PARK_OPTIONS.map((park) => (
-                <button
-                  key={park.name}
-                  onClick={() => setStartPark(park.name)}
-                  className={`text-center p-4 rounded-lg border-2 transition-all cursor-pointer ${
-                    startPark === park.name
-                      ? "border-secondary bg-secondary/10 shadow-lg"
-                      : "border-border bg-card hover:border-secondary/50"
-                  }`}
-                >
-                  <div className="text-4xl mb-2">{park.icon}</div>
-                  <div className="font-display text-lg text-foreground">{park.name}</div>
-                </button>
-              ))}
+              {PARK_OPTIONS.map((park) => {
+                const Icon = park.icon;
+                const isActive = startPark === park.name;
+                return (
+                  <button
+                    key={park.name}
+                    onClick={() => setStartPark(park.name)}
+                    className={`text-center p-5 rounded-lg border transition-all cursor-pointer ${
+                      isActive
+                        ? "border-secondary bg-secondary/5 shadow-sm"
+                        : "border-border bg-card hover:border-secondary/40"
+                    }`}
+                  >
+                    <Icon className={`w-7 h-7 mx-auto mb-2 ${isActive ? "text-secondary" : "text-muted-foreground"}`} strokeWidth={1.75} />
+                    <div className="font-body text-sm font-medium text-foreground">{park.name}</div>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -238,8 +245,8 @@ export default function DaySimulator() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex flex-wrap items-center gap-4 mb-6">
-        <h1 className="text-4xl text-foreground">{currentParkName}</h1>
-        <span className="bg-secondary/20 text-secondary font-display text-xl px-4 py-1 rounded-full">
+        <h1 className="text-2xl md:text-3xl text-foreground font-semibold tracking-tight">{currentParkName}</h1>
+        <span className="bg-secondary/15 text-secondary font-body font-semibold text-sm px-3 py-1 rounded-full">
           {formatTime(state.currentTime)}
         </span>
       </div>
@@ -247,7 +254,10 @@ export default function DaySimulator() {
       {/* Weather Alert */}
       {state.weatherActive && (
         <div className="bg-destructive/10 border border-destructive/30 text-destructive rounded-lg p-4 mb-6">
-          <div className="font-display text-xl">⚠️ Bad Weather until: {formatTime(state.weatherClearTime)}</div>
+          <div className="font-display text-base font-semibold inline-flex items-center gap-2">
+            <CloudRain className="w-4 h-4" strokeWidth={2} />
+            Bad Weather until: {formatTime(state.weatherClearTime)}
+          </div>
           <div className="text-sm font-body mt-1">
             Closed rides: {currentPark.rides.filter((r) => r.weatherEffect === 1).map((r) => r.name).join(", ")}
           </div>
@@ -288,9 +298,9 @@ export default function DaySimulator() {
                   <span className={`font-semibold ${ride.id === recommendedRide?.id ? "text-secondary-foreground" : "text-foreground"}`}>
                     {ride.name}
                   </span>
-                  <span className="float-right text-muted-foreground">
+                  <span className="float-right text-muted-foreground inline-flex items-center gap-1">
                     {ride.waitTime}m wait · {ride.onRideTime}m ride
-                    {ride.id === recommendedRide?.id && " ⭐"}
+                    {ride.id === recommendedRide?.id && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
                   </span>
                 </button>
               ))}

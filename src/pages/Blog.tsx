@@ -34,25 +34,25 @@ const CATEGORY_COLORS: Record<string, string> = {
 export default function Blog() {
   return (
     <div className="max-w-4xl mx-auto">
-      <h1 className="text-5xl text-foreground mb-2">Blog</h1>
-      <p className="text-muted-foreground font-body text-lg mb-8">
+      <h1 className="text-3xl md:text-4xl text-foreground mb-2 font-semibold tracking-tight">Blog</h1>
+      <p className="text-muted-foreground font-body text-base mb-8 max-w-2xl">
         Data-driven insights, tips, and stories from Central Florida's theme parks.
       </p>
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {BLOG_POSTS.map((post) => (
           <article
             key={post.id}
-            className="bg-card border border-border rounded-xl p-6 hover:shadow-lg transition-shadow cursor-pointer"
+            className="bg-card border border-border rounded-lg p-6 hover:border-secondary/40 hover:shadow-sm transition-all cursor-pointer"
           >
             <div className="flex items-center gap-3 mb-3">
-              <span className={`${CATEGORY_COLORS[post.category] || "bg-muted"} text-card font-body text-xs font-bold px-3 py-1 rounded-full`}>
+              <span className={`${CATEGORY_COLORS[post.category] || "bg-muted"} text-white font-body text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded`}>
                 {post.category}
               </span>
               <span className="text-muted-foreground text-sm font-body">{post.date}</span>
               <span className="text-muted-foreground text-sm font-body">· {post.readTime}</span>
             </div>
-            <h2 className="font-display text-3xl text-foreground mb-2 hover:text-secondary transition-colors">
+            <h2 className="font-display text-xl md:text-2xl font-semibold text-foreground mb-2 hover:text-secondary transition-colors tracking-tight">
               {post.title}
             </h2>
             <p className="text-muted-foreground font-body leading-relaxed">{post.excerpt}</p>
@@ -60,9 +60,9 @@ export default function Blog() {
         ))}
       </div>
 
-      <div className="mt-12 text-center py-8 border-2 border-dashed border-border rounded-xl">
-        <p className="font-display text-2xl text-muted-foreground">More posts coming soon! ✨</p>
-        <p className="text-muted-foreground font-body mt-2">Check back for new data-driven theme park content.</p>
+      <div className="mt-12 text-center py-10 border border-dashed border-border rounded-lg bg-muted/30">
+        <p className="font-display text-base font-semibold text-foreground">More posts coming soon</p>
+        <p className="text-muted-foreground font-body text-sm mt-1">Check back for new data-driven theme park content.</p>
       </div>
     </div>
   );
