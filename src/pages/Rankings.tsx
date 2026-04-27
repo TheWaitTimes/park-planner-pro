@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { Ticket, Building2, IceCream, type LucideIcon } from "lucide-react";
 import { RIDES, RESORTS, SNACKS, type RankingItem } from "@/data/rankings";
 
 type RankingCategory = "rides" | "resorts" | "snacks";
@@ -40,10 +41,10 @@ function generatePairs(n: number, maxPairs: number): [number, number][] {
   return all.slice(0, Math.min(maxPairs, all.length));
 }
 
-const CATEGORY_DATA: Record<RankingCategory, { items: RankingItem[]; nameKey: string; label: string; icon: string }> = {
-  rides: { items: RIDES, nameKey: "name", label: "Ride Rankings", icon: "🎢" },
-  resorts: { items: RESORTS, nameKey: "name", label: "Resort Rankings", icon: "🏨" },
-  snacks: { items: SNACKS, nameKey: "name", label: "Snack Rankings", icon: "🍦" },
+const CATEGORY_DATA: Record<RankingCategory, { items: RankingItem[]; nameKey: string; label: string; icon: LucideIcon }> = {
+  rides: { items: RIDES, nameKey: "name", label: "Ride Rankings", icon: Ticket },
+  resorts: { items: RESORTS, nameKey: "name", label: "Resort Rankings", icon: Building2 },
+  snacks: { items: SNACKS, nameKey: "name", label: "Snack Rankings", icon: IceCream },
 };
 
 const PARK_LOCATIONS = ["All Parks", ...new Set([...RIDES, ...RESORTS, ...SNACKS].map((i) => i.parkLocation))];
