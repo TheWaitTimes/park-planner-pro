@@ -385,6 +385,39 @@ export default function DayOptimizer() {
                 </div>
               </div>
 
+              {/* Per-slot summary */}
+              <div className="bg-card rounded-lg border border-border overflow-hidden">
+                <div className="bg-primary/10 px-4 py-2 border-b border-border">
+                  <h3 className="font-display text-lg text-foreground">📊 Per-Slot Summary</h3>
+                </div>
+                <div className="divide-y divide-border">
+                  {SLOT_ORDER.map((slot) => {
+                    const rows = groupedReport[slot];
+                    const count = rows.length;
+                    const total = rows.reduce((s, r) => s + r.expectedWait, 0);
+                    const avg = count > 0 ? Math.round(total / count) : 0;
+                    return (
+                      <div key={`sum-${slot}`} className="px-4 py-2 flex items-center gap-2 text-sm font-body">
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-foreground truncate">
+                            {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {count} ride{count !== 1 ? "s" : ""}
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-display text-secondary">{total}m total</div>
+                          <div className="text-xs text-muted-foreground">
+                            {count > 0 ? `${avg}m avg wait` : "—"}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Per-slot breakdown */}
               {SLOT_ORDER.map((slot) => {
                 const rows = groupedReport[slot];
