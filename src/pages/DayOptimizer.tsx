@@ -120,6 +120,61 @@ export default function DayOptimizer() {
   const [hours, setHours] = useState(10);
   const [plan, setPlan] = useState<Plan>({ morning: [], afternoon: [], night: [], hop: [] });
   const [report, setReport] = useState<ReportRow[] | null>(null);
+  const [exporting, setExporting] = useState<null | "png" | "pdf">(null);
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const captureReport = useCallback(async () => {
+    const node = reportRef.current;
+    if (!node) return null;
+    const bg = getComputedStyle(document.body).backgroundColor || "#ffffff";
+    return await html2canvas(node, {
+      backgroundColor: bg,
+      scale: 2,
+      useCORS: true,
+    });
+  }, []);
+
+  const downloadPNG = useCallback(async () => {
+    setExporting("png");
+    try {
+      const canvas = await captureReport();
+      if (!canvas) return;
+      const link = document.createElement("a");
+      link.download = `day-optimizer-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.png`;
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    } finally {
+      setExporting(null);
+    }
+  }, [captureReport, primaryPark]);
+
+  const downloadPDF = useCallback(async () => {
+    setExporting("pdf");
+    try {
+      const canvas = await captureReport();
+      if (!canvas) return;
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 24;
+      const imgW = pageW - margin * 2;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      let heightLeft = imgH;
+      let position = margin;
+      pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
+      heightLeft -= pageH - margin * 2;
+      while (heightLeft > 0) {
+        position = margin - (imgH - heightLeft);
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
+        heightLeft -= pageH - margin * 2;
+      }
+      pdf.save(`day-optimizer-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+    } finally {
+      setExporting(null);
+    }
+  }, [captureReport, primaryPark]);
 
   const primaryRides = PARKS[primaryPark]?.rides ?? [];
   const hopRides = PARKS[hopPark]?.rides ?? [];
