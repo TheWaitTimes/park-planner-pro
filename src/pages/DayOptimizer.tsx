@@ -488,8 +488,9 @@ export default function DayOptimizer() {
                     return (
                       <div key={`sum-${slot}`} className="px-4 py-2 flex items-center gap-2 text-sm font-body">
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-foreground truncate">
-                            {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                          <div className="font-semibold text-foreground truncate inline-flex items-center gap-2">
+                            {(() => { const I = SLOT_ICONS[slot]; return <I className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />; })()}
+                            {SLOT_LABELS[slot]}
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {count} ride{count !== 1 ? "s" : ""}
@@ -516,17 +517,22 @@ export default function DayOptimizer() {
                 const maxTotal = Math.max(1, ...slotTotals.map((s) => s.total));
                 return (
                   <div className="bg-card rounded-lg border border-border overflow-hidden">
-                    <div className="bg-primary/10 px-4 py-2 border-b border-border">
-                      <h3 className="font-display text-lg text-foreground">📈 Wait Time by Slot</h3>
+                    <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                      <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                        <TrendingUp className="w-4 h-4 text-secondary" strokeWidth={2} />
+                        Wait Time by Slot
+                      </h3>
                     </div>
                     <div className="p-4 space-y-3">
                       {slotTotals.map(({ slot, total }) => {
                         const pct = (total / maxTotal) * 100;
+                        const I = SLOT_ICONS[slot];
                         return (
                           <div key={`bar-${slot}`} className="space-y-1">
                             <div className="flex items-center justify-between text-xs font-body">
-                              <span className="font-semibold text-foreground">
-                                {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                              <span className="font-semibold text-foreground inline-flex items-center gap-1.5">
+                                <I className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
+                                {SLOT_LABELS[slot]}
                               </span>
                               <span className="text-secondary font-display">{total}m</span>
                             </div>
