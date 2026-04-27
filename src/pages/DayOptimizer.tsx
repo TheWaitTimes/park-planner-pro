@@ -419,8 +419,33 @@ export default function DayOptimizer() {
 
           {report && groupedReport && difficulty && (
             <div className="space-y-4">
-              {/* Summary */}
-              <div className="bg-card rounded-lg border border-border p-4 space-y-3">
+              {/* Download actions */}
+              <div className="flex gap-2">
+                <button
+                  onClick={downloadPNG}
+                  disabled={exporting !== null}
+                  className="flex-1 bg-primary text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-wait"
+                >
+                  {exporting === "png" ? "Generating…" : "⬇ Download PNG"}
+                </button>
+                <button
+                  onClick={downloadPDF}
+                  disabled={exporting !== null}
+                  className="flex-1 bg-primary text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-wait"
+                >
+                  {exporting === "pdf" ? "Generating…" : "⬇ Download PDF"}
+                </button>
+              </div>
+
+              <div ref={reportRef} className="space-y-4 bg-background p-3 rounded-lg">
+                <div className="text-center pb-2 border-b border-border">
+                  <div className="font-display text-2xl text-foreground">Day Optimizer Report</div>
+                  <div className="text-xs font-body text-muted-foreground">
+                    {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h
+                  </div>
+                </div>
+                {/* Summary */}
+                <div className="bg-card rounded-lg border border-border p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="text-center">
                     <div className="text-xs font-body text-muted-foreground">Total Rides</div>
