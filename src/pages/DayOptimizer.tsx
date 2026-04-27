@@ -571,20 +571,25 @@ export default function DayOptimizer() {
                 if (!hasAny) return null;
                 return (
                   <div className="bg-card rounded-lg border border-border overflow-hidden">
-                    <div className="bg-primary/10 px-4 py-2 border-b border-border">
-                      <h3 className="font-display text-lg text-foreground">📊 Ride Contribution by Slot</h3>
-                      <p className="text-xs font-body text-muted-foreground">
+                    <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                      <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                        <Layers className="w-4 h-4 text-secondary" strokeWidth={2} />
+                        Ride Contribution by Slot
+                      </h3>
+                      <p className="text-xs font-body text-muted-foreground mt-0.5">
                         Each segment = one ride's expected wait
                       </p>
                     </div>
                     <div className="p-4 space-y-4">
                       {slotData.map(({ slot, rows, total }) => {
                         const slotPct = (total / maxTotal) * 100;
+                        const I = SLOT_ICONS[slot];
                         return (
                           <div key={`stack-${slot}`} className="space-y-1.5">
                             <div className="flex items-center justify-between text-xs font-body">
-                              <span className="font-semibold text-foreground">
-                                {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                              <span className="font-semibold text-foreground inline-flex items-center gap-1.5">
+                                <I className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
+                                {SLOT_LABELS[slot]}
                               </span>
                               <span className="text-secondary font-display">
                                 {rows.length === 0 ? "—" : `${total}m`}
