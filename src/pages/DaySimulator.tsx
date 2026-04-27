@@ -113,7 +113,7 @@ export default function DaySimulator() {
   if (state.status === "ended") {
     return (
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-5xl text-foreground mb-6">Day Summary</h1>
+        <h1 className="text-3xl md:text-4xl text-foreground mb-6 font-semibold tracking-tight">Day Summary</h1>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="bg-card rounded-lg p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Parks Visited</div>
@@ -245,8 +245,8 @@ export default function DaySimulator() {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="flex flex-wrap items-center gap-4 mb-6">
-        <h1 className="text-4xl text-foreground">{currentParkName}</h1>
-        <span className="bg-secondary/20 text-secondary font-display text-xl px-4 py-1 rounded-full">
+        <h1 className="text-2xl md:text-3xl text-foreground font-semibold tracking-tight">{currentParkName}</h1>
+        <span className="bg-secondary/15 text-secondary font-body font-semibold text-sm px-3 py-1 rounded-full">
           {formatTime(state.currentTime)}
         </span>
       </div>
