@@ -649,11 +649,13 @@ export default function DayOptimizer() {
               {SLOT_ORDER.map((slot) => {
                 const rows = groupedReport[slot];
                 if (rows.length === 0) return null;
+                const I = SLOT_ICONS[slot];
                 return (
                   <div key={slot} className="bg-card rounded-lg border border-border overflow-hidden">
-                    <div className="bg-primary/10 px-4 py-2 border-b border-border">
-                      <h3 className="font-display text-lg text-foreground">
-                        {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                    <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                      <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                        <I className="w-4 h-4 text-secondary" strokeWidth={2} />
+                        {SLOT_LABELS[slot]}
                       </h3>
                     </div>
                     <div className="divide-y divide-border">
@@ -681,7 +683,7 @@ export default function DayOptimizer() {
 
           {!report && (
             <div className="bg-card rounded-lg border border-border p-6 text-center">
-              <div className="text-4xl mb-2">🎢</div>
+              <Ticket className="w-8 h-8 mx-auto mb-2 text-muted-foreground" strokeWidth={1.5} />
               <p className="text-sm font-body text-muted-foreground">
                 Add rides to your day, set your conditions, then run the report.
               </p>
