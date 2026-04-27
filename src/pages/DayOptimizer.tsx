@@ -418,6 +418,43 @@ export default function DayOptimizer() {
                 </div>
               </div>
 
+              {/* Per-slot bar chart */}
+              {(() => {
+                const slotTotals = SLOT_ORDER.map((slot) => ({
+                  slot,
+                  total: groupedReport[slot].reduce((s, r) => s + r.expectedWait, 0),
+                }));
+                const maxTotal = Math.max(1, ...slotTotals.map((s) => s.total));
+                return (
+                  <div className="bg-card rounded-lg border border-border overflow-hidden">
+                    <div className="bg-primary/10 px-4 py-2 border-b border-border">
+                      <h3 className="font-display text-lg text-foreground">📈 Wait Time by Slot</h3>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      {slotTotals.map(({ slot, total }) => {
+                        const pct = (total / maxTotal) * 100;
+                        return (
+                          <div key={`bar-${slot}`} className="space-y-1">
+                            <div className="flex items-center justify-between text-xs font-body">
+                              <span className="font-semibold text-foreground">
+                                {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                              </span>
+                              <span className="text-secondary font-display">{total}m</span>
+                            </div>
+                            <div className="h-3 w-full bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-secondary rounded-full transition-all"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Per-slot breakdown */}
               {SLOT_ORDER.map((slot) => {
                 const rows = groupedReport[slot];
