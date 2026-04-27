@@ -1,4 +1,6 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 import { PARKS, type Ride } from "@/data/parks";
 
 type Slot = "morning" | "afternoon" | "night" | "hop";
