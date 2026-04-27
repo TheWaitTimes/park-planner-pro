@@ -1,5 +1,8 @@
 import { useReducer, useState, useEffect, useMemo } from "react";
 import {
+  Castle, Globe, Clapperboard, Trees, CloudRain, Star, type LucideIcon,
+} from "lucide-react";
+import {
   simulationReducer,
   initialSimulationState,
 } from "@/simulation/simulationReducer";
@@ -29,11 +32,11 @@ function formatHourToEST(hour: number): string {
   return `${hour12}:00 ${period}`;
 }
 
-const PARK_OPTIONS = [
-  { name: "Magic Kingdom", icon: "🏰" },
-  { name: "EPCOT", icon: "⚪" },
-  { name: "Hollywood Studios", icon: "🗼" },
-  { name: "Animal Kingdom", icon: "🌳" },
+const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
+  { name: "Magic Kingdom", icon: Castle },
+  { name: "EPCOT", icon: Globe },
+  { name: "Hollywood Studios", icon: Clapperboard },
+  { name: "Animal Kingdom", icon: Trees },
 ];
 
 export default function DaySimulator() {
