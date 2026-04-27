@@ -1,6 +1,11 @@
 import { useState, useMemo, useCallback, useRef } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
+import {
+  Sun, CloudSun, Moon, Shuffle, Castle, Globe, Clapperboard, Trees,
+  BarChart3, TrendingUp, Layers, Play, Download, Ticket,
+  type LucideIcon,
+} from "lucide-react";
 import { PARKS, type Ride } from "@/data/parks";
 
 type Slot = "morning" | "afternoon" | "night" | "hop";
@@ -12,11 +17,11 @@ const SLOT_LABELS: Record<Slot, string> = {
   hop: "Afternoon Park Hop",
 };
 
-const SLOT_ICONS: Record<Slot, string> = {
-  morning: "☀️",
-  afternoon: "🌤️",
-  night: "🌙",
-  hop: "🔀",
+const SLOT_ICONS: Record<Slot, LucideIcon> = {
+  morning: Sun,
+  afternoon: CloudSun,
+  night: Moon,
+  hop: Shuffle,
 };
 
 const SLOT_DESCRIPTIONS: Record<Slot, string> = {
@@ -47,11 +52,11 @@ const SLOT_WAIT_MULTIPLIER: Record<Slot, number> = {
   hop: 1.1,
 };
 
-const PARK_OPTIONS = [
-  { name: "Magic Kingdom", icon: "🏰" },
-  { name: "EPCOT", icon: "⚪" },
-  { name: "Hollywood Studios", icon: "🎬" },
-  { name: "Animal Kingdom", icon: "🌳" },
+const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
+  { name: "Magic Kingdom", icon: Castle },
+  { name: "EPCOT", icon: Globe },
+  { name: "Hollywood Studios", icon: Clapperboard },
+  { name: "Animal Kingdom", icon: Trees },
 ];
 
 interface PlannedRide {
