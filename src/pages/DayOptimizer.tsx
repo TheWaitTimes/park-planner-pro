@@ -455,6 +455,96 @@ export default function DayOptimizer() {
                 );
               })()}
 
+              {/* Stacked bar chart: ride contribution per slot */}
+              {(() => {
+                const slotData = SLOT_ORDER.map((slot) => ({
+                  slot,
+                  rows: groupedReport[slot],
+                  total: groupedReport[slot].reduce((s, r) => s + r.expectedWait, 0),
+                }));
+                const maxTotal = Math.max(1, ...slotData.map((s) => s.total));
+                // Distinct shades for stacked segments
+                const SEGMENT_COLORS = [
+                  "hsl(var(--secondary))",
+                  "hsl(var(--primary))",
+                  "hsl(var(--secondary) / 0.65)",
+                  "hsl(var(--primary) / 0.65)",
+                  "hsl(var(--secondary) / 0.4)",
+                  "hsl(var(--primary) / 0.4)",
+                ];
+                const hasAny = slotData.some((s) => s.rows.length > 0);
+                if (!hasAny) return null;
+                return (
+                  <div className="bg-card rounded-lg border border-border overflow-hidden">
+                    <div className="bg-primary/10 px-4 py-2 border-b border-border">
+                      <h3 className="font-display text-lg text-foreground">📊 Ride Contribution by Slot</h3>
+                      <p className="text-xs font-body text-muted-foreground">
+                        Each segment = one ride's expected wait
+                      </p>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      {slotData.map(({ slot, rows, total }) => {
+                        const slotPct = (total / maxTotal) * 100;
+                        return (
+                          <div key={`stack-${slot}`} className="space-y-1.5">
+                            <div className="flex items-center justify-between text-xs font-body">
+                              <span className="font-semibold text-foreground">
+                                {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+                              </span>
+                              <span className="text-secondary font-display">
+                                {rows.length === 0 ? "—" : `${total}m`}
+                              </span>
+                            </div>
+                            <div className="h-6 w-full bg-muted rounded-md overflow-hidden flex">
+                              {rows.length > 0 && (
+                                <div
+                                  className="h-full flex transition-all"
+                                  style={{ width: `${slotPct}%` }}
+                                >
+                                  {rows.map((r, i) => {
+                                    const segPct = total > 0 ? (r.expectedWait / total) * 100 : 0;
+                                    return (
+                                      <div
+                                        key={`seg-${slot}-${r.rideId}`}
+                                        className="h-full flex items-center justify-center text-[10px] font-body font-semibold text-background overflow-hidden border-r border-card last:border-r-0"
+                                        style={{
+                                          width: `${segPct}%`,
+                                          backgroundColor: SEGMENT_COLORS[i % SEGMENT_COLORS.length],
+                                        }}
+                                        title={`${r.rideName} — ${r.expectedWait}m`}
+                                      >
+                                        {segPct >= 12 ? `${r.expectedWait}m` : ""}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                            {rows.length > 0 && (
+                              <div className="flex flex-wrap gap-x-3 gap-y-1 pt-1">
+                                {rows.map((r, i) => (
+                                  <div
+                                    key={`leg-${slot}-${r.rideId}`}
+                                    className="flex items-center gap-1.5 text-[11px] font-body text-muted-foreground"
+                                  >
+                                    <span
+                                      className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
+                                      style={{ backgroundColor: SEGMENT_COLORS[i % SEGMENT_COLORS.length] }}
+                                    />
+                                    <span className="truncate max-w-[140px]">{r.rideName}</span>
+                                    <span className="text-foreground font-semibold">{r.expectedWait}m</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Per-slot breakdown */}
               {SLOT_ORDER.map((slot) => {
                 const rows = groupedReport[slot];
