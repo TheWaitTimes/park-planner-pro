@@ -59,7 +59,7 @@ export default function Rankings() {
   const [pairIdx, setPairIdx] = useState(0);
   const [quizStarted, setQuizStarted] = useState(false);
 
-  const { items, label, icon } = CATEGORY_DATA[category];
+  const { items, label, icon: HeaderIcon } = CATEGORY_DATA[category];
 
   const filteredItems = useMemo(() => {
     if (parkFilter === "All Parks") return items;
