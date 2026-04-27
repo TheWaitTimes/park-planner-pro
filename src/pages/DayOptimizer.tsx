@@ -303,8 +303,8 @@ export default function DayOptimizer() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-5xl md:text-6xl text-foreground mb-2">Day Optimizer</h1>
-      <p className="font-body text-muted-foreground mb-8">
+      <h1 className="text-3xl md:text-4xl text-foreground mb-2 font-semibold tracking-tight">Day Optimizer</h1>
+      <p className="font-body text-muted-foreground mb-8 max-w-2xl">
         Build your dream day — add rides to each part of the day, set your conditions, and run the report.
       </p>
 
@@ -419,9 +419,10 @@ export default function DayOptimizer() {
           <button
             onClick={runReport}
             disabled={totalRidesPlanned(plan) === 0}
-            className="w-full bg-secondary text-secondary-foreground font-display text-2xl py-4 rounded-lg hover:opacity-90 transition shadow-lg disabled:opacity-40 disabled:cursor-not-allowed"
+            className="w-full bg-secondary text-secondary-foreground font-body font-semibold text-base py-3.5 rounded-md hover:bg-secondary/90 transition shadow-sm disabled:opacity-40 disabled:cursor-not-allowed inline-flex items-center justify-center gap-2"
           >
-            ▶ Run Report
+            <Play className="w-4 h-4" strokeWidth={2.5} />
+            Run Report
           </button>
 
           {report && groupedReport && difficulty && (
@@ -431,16 +432,18 @@ export default function DayOptimizer() {
                 <button
                   onClick={downloadPNG}
                   disabled={exporting !== null}
-                  className="flex-1 bg-primary text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-wait"
+                  className="flex-1 border border-border bg-card text-foreground font-body font-medium text-sm py-2.5 rounded-md hover:bg-muted transition disabled:opacity-50 disabled:cursor-wait inline-flex items-center justify-center gap-1.5"
                 >
-                  {exporting === "png" ? "Generating…" : "⬇ Download PNG"}
+                  <Download className="w-3.5 h-3.5" strokeWidth={2} />
+                  {exporting === "png" ? "Generating…" : "PNG"}
                 </button>
                 <button
                   onClick={downloadPDF}
                   disabled={exporting !== null}
-                  className="flex-1 bg-primary text-primary-foreground font-body font-semibold text-sm py-2.5 rounded-md hover:opacity-90 transition disabled:opacity-50 disabled:cursor-wait"
+                  className="flex-1 border border-border bg-card text-foreground font-body font-medium text-sm py-2.5 rounded-md hover:bg-muted transition disabled:opacity-50 disabled:cursor-wait inline-flex items-center justify-center gap-1.5"
                 >
-                  {exporting === "pdf" ? "Generating…" : "⬇ Download PDF"}
+                  <Download className="w-3.5 h-3.5" strokeWidth={2} />
+                  {exporting === "pdf" ? "Generating…" : "PDF"}
                 </button>
               </div>
 
@@ -476,8 +479,11 @@ export default function DayOptimizer() {
 
               {/* Per-slot summary */}
               <div className="bg-card rounded-lg border border-border overflow-hidden">
-                <div className="bg-primary/10 px-4 py-2 border-b border-border">
-                  <h3 className="font-display text-lg text-foreground">📊 Per-Slot Summary</h3>
+                <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                  <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-secondary" strokeWidth={2} />
+                    Per-Slot Summary
+                  </h3>
                 </div>
                 <div className="divide-y divide-border">
                   {SLOT_ORDER.map((slot) => {
