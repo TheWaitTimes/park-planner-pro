@@ -238,6 +238,7 @@ export default function DayOptimizer() {
     const sourceRides = isHop ? hopRides : primaryRides;
     const planned = plan[slot];
     const available = sourceRides.filter((r) => !planned.some((p) => p.rideId === r.id));
+    const SlotIcon = SLOT_ICONS[slot];
 
     return (
       <div
@@ -247,8 +248,9 @@ export default function DayOptimizer() {
         }`}
       >
         <div className="flex items-baseline justify-between mb-1">
-          <h3 className="text-2xl font-display text-foreground">
-            {SLOT_ICONS[slot]} {SLOT_LABELS[slot]}
+          <h3 className="text-base font-display font-semibold text-foreground inline-flex items-center gap-2">
+            <SlotIcon className="w-4 h-4 text-secondary" strokeWidth={2} />
+            {SLOT_LABELS[slot]}
           </h3>
           <span className="text-xs text-muted-foreground font-body">
             {planned.length} ride{planned.length !== 1 ? "s" : ""}
