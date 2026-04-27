@@ -657,6 +657,7 @@ export default function DayOptimizer() {
                   </div>
                 );
               })}
+              </div>
             </div>
           )}
 
