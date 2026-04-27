@@ -328,7 +328,7 @@ export default function DayOptimizer() {
                 >
                   {PARK_OPTIONS.map((p) => (
                     <option key={p.name} value={p.name}>
-                      {p.icon} {p.name}
+                      {p.name}
                     </option>
                   ))}
                 </select>
@@ -346,7 +346,7 @@ export default function DayOptimizer() {
                 >
                   {PARK_OPTIONS.filter((p) => p.name !== primaryPark).map((p) => (
                     <option key={p.name} value={p.name}>
-                      {p.icon} {p.name}
+                      {p.name}
                     </option>
                   ))}
                 </select>
