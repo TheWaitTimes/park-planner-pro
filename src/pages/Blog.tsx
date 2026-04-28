@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { Plus, Eye, Send, Pencil, Trash2, ArrowLeft, FileText } from "lucide-react";
+import { Plus, Eye, Send, Pencil, Trash2, ArrowLeft, FileText, LogIn } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,55 +13,24 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 type PostStatus = "draft" | "published";
 
 interface BlogPost {
-  id: number;
+  id: string;
   title: string;
   excerpt: string;
   body: string;
-  date: string;
   category: string;
-  readTime: string;
   status: PostStatus;
+  read_time: string;
+  published_at: string | null;
+  created_at: string;
+  updated_at: string;
+  author_id: string | null;
 }
-
-const SEED_POSTS: BlogPost[] = [
-  {
-    id: 1,
-    title: "Top 10 Rides to FastPass at Magic Kingdom",
-    excerpt:
-      "Maximize your day at Magic Kingdom by targeting these high-demand attractions with your Lightning Lane selections.",
-    body: "Maximize your day at Magic Kingdom by targeting these high-demand attractions with your Lightning Lane selections. Our data shows the average wait differential between LL and standby is most pronounced on Seven Dwarfs Mine Train, Tron Lightcycle Run, and Space Mountain.",
-    date: "April 10, 2026",
-    category: "Strategy",
-    readTime: "5 min read",
-    status: "published",
-  },
-  {
-    id: 2,
-    title: "EPCOT Food & Wine Festival: A Data-Driven Guide",
-    excerpt:
-      "We crunched the numbers on wait times, booth ratings, and crowd levels to find the best times to visit each booth.",
-    body: "We crunched the numbers on wait times, booth ratings, and crowd levels to find the best times to visit each booth.",
-    date: "April 5, 2026",
-    category: "Events",
-    readTime: "8 min read",
-    status: "published",
-  },
-  {
-    id: 3,
-    title: "Is Park Hopping Worth It? The Numbers Say...",
-    excerpt:
-      "We simulated 1,000 park days to compare single-park vs park-hopping strategies. The results may surprise you.",
-    body: "We simulated 1,000 park days to compare single-park vs park-hopping strategies. The results may surprise you.",
-    date: "March 28, 2026",
-    category: "Analysis",
-    readTime: "6 min read",
-    status: "published",
-  },
-];
 
 const CATEGORIES = ["Strategy", "Events", "Analysis", "News", "Guide"];
 
@@ -72,14 +42,14 @@ const CATEGORY_COLORS: Record<string, string> = {
   Guide: "bg-park-animal",
 };
 
-const STORAGE_KEY = "msi_blog_posts_v1";
-
-const formatToday = () =>
-  new Date().toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
+const formatDate = (iso: string | null) =>
+  iso
+    ? new Date(iso).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      })
+    : "Unpublished";
 
 const estimateReadTime = (text: string) => {
   const words = text.trim().split(/\s+/).filter(Boolean).length;
@@ -90,7 +60,7 @@ const estimateReadTime = (text: string) => {
 type View = "list" | "edit" | "preview";
 
 interface Draft {
-  id: number | null;
+  id: string | null;
   title: string;
   excerpt: string;
   body: string;
@@ -106,32 +76,43 @@ const EMPTY_DRAFT: Draft = {
 };
 
 export default function Blog() {
-  const [posts, setPosts] = useState<BlogPost[]>(() => {
-    if (typeof window === "undefined") return SEED_POSTS;
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw) as BlogPost[];
-    } catch {
-      /* ignore */
-    }
-    return SEED_POSTS;
-  });
+  const { isAdmin, user } = useAuth();
+  const [posts, setPosts] = useState<BlogPost[]>([]);
+  const [loading, setLoading] = useState(true);
   const [view, setView] = useState<View>("list");
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-    } catch {
-      /* ignore */
+    loadPosts();
+    // Reload when admin status changes (so admins see drafts)
+  }, [isAdmin]);
+
+  const loadPosts = async () => {
+    setLoading(true);
+    const query = supabase
+      .from("posts")
+      .select("*")
+      .order("status", { ascending: true }) // draft before published
+      .order("published_at", { ascending: false, nullsFirst: true })
+      .order("created_at", { ascending: false });
+    const { data, error } = await query;
+    if (error) {
+      toast({ title: "Could not load posts", description: error.message });
+      setPosts([]);
+    } else {
+      setPosts((data ?? []) as BlogPost[]);
     }
-  }, [posts]);
+    setLoading(false);
+  };
 
   const sortedPosts = useMemo(
     () =>
       [...posts].sort((a, b) => {
         if (a.status !== b.status) return a.status === "draft" ? -1 : 1;
-        return b.id - a.id;
+        const aDate = a.published_at ?? a.created_at;
+        const bDate = b.published_at ?? b.created_at;
+        return new Date(bDate).getTime() - new Date(aDate).getTime();
       }),
     [posts],
   );
@@ -164,79 +145,85 @@ export default function Blog() {
     return true;
   };
 
-  const upsertPost = (status: PostStatus) => {
-    if (!validate()) return null;
+  const upsertPost = async (status: PostStatus) => {
+    if (!validate() || !user) return false;
+    setSaving(true);
     const excerpt = draft.excerpt.trim() || draft.body.trim().slice(0, 180);
-    const readTime = estimateReadTime(draft.body);
-    let savedId = draft.id;
-    setPosts((prev) => {
-      if (draft.id !== null) {
-        return prev.map((p) =>
-          p.id === draft.id
-            ? {
-                ...p,
-                title: draft.title.trim(),
-                excerpt,
-                body: draft.body.trim(),
-                category: draft.category,
-                readTime,
-                status,
-                date: status === "published" && p.status !== "published" ? formatToday() : p.date,
-              }
-            : p,
-        );
-      }
-      const newId = (prev.reduce((m, p) => Math.max(m, p.id), 0) || 0) + 1;
-      savedId = newId;
-      return [
-        ...prev,
-        {
-          id: newId,
-          title: draft.title.trim(),
-          excerpt,
-          body: draft.body.trim(),
-          category: draft.category,
-          readTime,
-          date: formatToday(),
-          status,
-        },
-      ];
-    });
-    setDraft((d) => ({ ...d, id: savedId }));
-    return savedId;
+    const read_time = estimateReadTime(draft.body);
+    const payload = {
+      title: draft.title.trim(),
+      excerpt,
+      body: draft.body.trim(),
+      category: draft.category,
+      status,
+      read_time,
+    };
+
+    let error: { message: string } | null = null;
+    if (draft.id) {
+      const existing = posts.find((p) => p.id === draft.id);
+      const becomingPublished = status === "published" && existing?.status !== "published";
+      const { error: updErr } = await supabase
+        .from("posts")
+        .update({
+          ...payload,
+          ...(becomingPublished ? { published_at: new Date().toISOString() } : {}),
+        })
+        .eq("id", draft.id);
+      error = updErr;
+    } else {
+      const { error: insErr } = await supabase.from("posts").insert({
+        ...payload,
+        author_id: user.id,
+        published_at: status === "published" ? new Date().toISOString() : null,
+      });
+      error = insErr;
+    }
+
+    setSaving(false);
+    if (error) {
+      toast({ title: "Save failed", description: error.message });
+      return false;
+    }
+    await loadPosts();
+    return true;
   };
 
-  const handleSaveDraft = () => {
-    if (upsertPost("draft") !== null) {
-      toast({ title: "Draft saved", description: "Your draft is stored locally." });
+  const handleSaveDraft = async () => {
+    if (await upsertPost("draft")) {
+      toast({ title: "Draft saved" });
       setView("list");
     }
   };
 
-  const handlePublish = () => {
-    if (upsertPost("published") !== null) {
-      toast({ title: "Post published", description: "Your post is now live in the blog." });
+  const handlePublish = async () => {
+    if (await upsertPost("published")) {
+      toast({ title: "Post published", description: "Your post is now live." });
       setView("list");
     }
   };
 
-  const handleDelete = (id: number) => {
-    setPosts((prev) => prev.filter((p) => p.id !== id));
+  const handleDelete = async (id: string) => {
+    const { error } = await supabase.from("posts").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message });
+      return;
+    }
     toast({ title: "Post deleted" });
+    setPosts((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const previewPost: BlogPost = {
-    id: draft.id ?? 0,
+  const previewPost = {
     title: draft.title || "Untitled post",
     excerpt: draft.excerpt || draft.body.slice(0, 180),
     body: draft.body,
-    date: formatToday(),
     category: draft.category,
-    readTime: estimateReadTime(draft.body),
-    status: "draft",
+    read_time: estimateReadTime(draft.body),
+    published_at: new Date().toISOString(),
   };
 
-  if (view === "edit") {
+  // ---- Editor view ----
+  if (view === "edit" && isAdmin) {
     return (
       <div className="max-w-4xl mx-auto">
         <button
@@ -313,13 +300,13 @@ export default function Blog() {
           </div>
 
           <div className="flex flex-wrap gap-2 pt-2 border-t border-border">
-            <Button variant="outline" onClick={() => setView("preview")}>
+            <Button variant="outline" onClick={() => setView("preview")} disabled={saving}>
               <Eye className="w-4 h-4" /> Preview
             </Button>
-            <Button variant="secondary" onClick={handleSaveDraft}>
+            <Button variant="secondary" onClick={handleSaveDraft} disabled={saving}>
               Save draft
             </Button>
-            <Button onClick={handlePublish}>
+            <Button onClick={handlePublish} disabled={saving}>
               <Send className="w-4 h-4" /> Publish
             </Button>
           </div>
@@ -328,7 +315,8 @@ export default function Blog() {
     );
   }
 
-  if (view === "preview") {
+  // ---- Preview view ----
+  if (view === "preview" && isAdmin) {
     return (
       <div className="max-w-3xl mx-auto">
         <div className="flex items-center justify-between mb-4">
@@ -340,8 +328,8 @@ export default function Blog() {
             Back to editor
           </button>
           <div className="flex gap-2">
-            <Button variant="secondary" size="sm" onClick={handleSaveDraft}>Save draft</Button>
-            <Button size="sm" onClick={handlePublish}>
+            <Button variant="secondary" size="sm" onClick={handleSaveDraft} disabled={saving}>Save draft</Button>
+            <Button size="sm" onClick={handlePublish} disabled={saving}>
               <Send className="w-4 h-4" /> Publish
             </Button>
           </div>
@@ -356,8 +344,8 @@ export default function Blog() {
             >
               {previewPost.category}
             </span>
-            <span className="text-muted-foreground text-sm font-body">{previewPost.date}</span>
-            <span className="text-muted-foreground text-sm font-body">· {previewPost.readTime}</span>
+            <span className="text-muted-foreground text-sm font-body">{formatDate(previewPost.published_at)}</span>
+            <span className="text-muted-foreground text-sm font-body">· {previewPost.read_time}</span>
           </div>
           <h1 className="font-display text-3xl md:text-4xl font-semibold text-foreground mb-4 tracking-tight">
             {previewPost.title}
@@ -373,6 +361,7 @@ export default function Blog() {
     );
   }
 
+  // ---- List view ----
   return (
     <div className="max-w-4xl mx-auto">
       <div className="flex items-start justify-between mb-2 gap-4">
@@ -382,57 +371,83 @@ export default function Blog() {
             Data-driven insights, tips, and stories from Central Florida's theme parks.
           </p>
         </div>
-        <Button onClick={startNew} className="shrink-0">
-          <Plus className="w-4 h-4" /> New post
-        </Button>
+        {isAdmin && (
+          <Button onClick={startNew} className="shrink-0">
+            <Plus className="w-4 h-4" /> New post
+          </Button>
+        )}
       </div>
 
       <div className="space-y-5 mt-8">
-        {sortedPosts.length === 0 && (
+        {loading && (
+          <div className="text-center py-12 text-muted-foreground font-body text-sm">
+            Loading posts...
+          </div>
+        )}
+
+        {!loading && sortedPosts.length === 0 && (
           <div className="text-center py-16 border border-dashed border-border rounded-lg bg-muted/30">
             <FileText className="w-6 h-6 mx-auto text-muted-foreground mb-2" />
             <p className="font-display text-base font-semibold text-foreground">No posts yet</p>
-            <p className="text-muted-foreground font-body text-sm mt-1">Click "New post" to write your first one.</p>
+            <p className="text-muted-foreground font-body text-sm mt-1">
+              {isAdmin
+                ? 'Click "New post" to write your first one.'
+                : "Check back soon for data-driven theme park content."}
+            </p>
+            {!isAdmin && (
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-1.5 text-secondary hover:underline font-body text-sm mt-4"
+              >
+                <LogIn className="w-4 h-4" /> Admin sign in
+              </Link>
+            )}
           </div>
         )}
-        {sortedPosts.map((post) => (
-          <article
-            key={post.id}
-            className="bg-card border border-border rounded-lg p-6 hover:border-secondary/40 hover:shadow-sm transition-all"
-          >
-            <div className="flex items-center gap-3 mb-3 flex-wrap">
-              <span
-                className={`${CATEGORY_COLORS[post.category] || "bg-muted"} text-white font-body text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded`}
-              >
-                {post.category}
-              </span>
-              {post.status === "draft" && (
-                <span className="border border-border text-foreground/70 font-body text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded">
-                  Draft
-                </span>
-              )}
-              <span className="text-muted-foreground text-sm font-body">{post.date}</span>
-              <span className="text-muted-foreground text-sm font-body">· {post.readTime}</span>
-              <div className="ml-auto flex gap-1">
-                <Button variant="ghost" size="sm" onClick={() => startEdit(post)}>
-                  <Pencil className="w-4 h-4" /> Edit
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDelete(post.id)}
-                  className="text-destructive hover:text-destructive"
+
+        {!loading &&
+          sortedPosts.map((post) => (
+            <article
+              key={post.id}
+              className="bg-card border border-border rounded-lg p-6 hover:border-secondary/40 hover:shadow-sm transition-all"
+            >
+              <div className="flex items-center gap-3 mb-3 flex-wrap">
+                <span
+                  className={`${CATEGORY_COLORS[post.category] || "bg-muted"} text-white font-body text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded`}
                 >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                  {post.category}
+                </span>
+                {post.status === "draft" && (
+                  <span className="border border-border text-foreground/70 font-body text-[11px] font-semibold uppercase tracking-wide px-2.5 py-1 rounded">
+                    Draft
+                  </span>
+                )}
+                <span className="text-muted-foreground text-sm font-body">
+                  {formatDate(post.status === "published" ? post.published_at : post.created_at)}
+                </span>
+                <span className="text-muted-foreground text-sm font-body">· {post.read_time}</span>
+                {isAdmin && (
+                  <div className="ml-auto flex gap-1">
+                    <Button variant="ghost" size="sm" onClick={() => startEdit(post)}>
+                      <Pencil className="w-4 h-4" /> Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(post.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
-            </div>
-            <h2 className="font-display text-xl md:text-2xl font-semibold text-foreground mb-2 tracking-tight">
-              {post.title}
-            </h2>
-            <p className="text-muted-foreground font-body leading-relaxed">{post.excerpt}</p>
-          </article>
-        ))}
+              <h2 className="font-display text-xl md:text-2xl font-semibold text-foreground mb-2 tracking-tight">
+                {post.title}
+              </h2>
+              <p className="text-muted-foreground font-body leading-relaxed">{post.excerpt}</p>
+            </article>
+          ))}
       </div>
     </div>
   );

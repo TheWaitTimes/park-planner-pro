@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { CalendarRange, Gauge, Trophy, FileText, type LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CalendarRange, Gauge, Trophy, FileText, LogIn, LogOut, type LucideIcon } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import DaySimulator from "@/pages/DaySimulator";
 import DayOptimizer from "@/pages/DayOptimizer";
 import Rankings from "@/pages/Rankings";
@@ -16,16 +18,44 @@ const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState<Tab>("simulator");
+  const { session, isAdmin, signOut } = useAuth();
 
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-header sticky top-0 z-50 shadow-sm border-b border-header-foreground/10">
         {/* Top bar */}
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <h1 className="font-display text-xl md:text-2xl text-header-foreground tracking-tight font-semibold">
             Main Street <span className="text-header-accent font-normal">Insights</span>
           </h1>
+          <div className="flex items-center gap-3 text-sm font-body">
+            {session ? (
+              <>
+                {isAdmin && (
+                  <span className="hidden sm:inline-flex items-center text-[11px] uppercase tracking-wide font-semibold text-header-accent border border-header-accent/40 rounded px-2 py-0.5">
+                    Admin
+                  </span>
+                )}
+                <span className="hidden md:inline text-header-foreground/60 truncate max-w-[180px]">
+                  {session.user.email}
+                </span>
+                <button
+                  onClick={signOut}
+                  className="text-header-foreground/80 hover:text-header-foreground inline-flex items-center gap-1.5"
+                >
+                  <LogOut className="w-4 h-4" /> Sign out
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="text-header-foreground/80 hover:text-header-foreground inline-flex items-center gap-1.5"
+              >
+                <LogIn className="w-4 h-4" /> Sign in
+              </Link>
+            )}
+          </div>
         </div>
         {/* Tab Navigation */}
         <nav className="border-t border-header-foreground/10">
