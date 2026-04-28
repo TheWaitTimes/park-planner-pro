@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { CalendarRange, Gauge, Trophy, FileText, type LucideIcon } from "lucide-react";
+import { Link } from "react-router-dom";
+import { CalendarRange, Gauge, Trophy, FileText, LogIn, LogOut, type LucideIcon } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import DaySimulator from "@/pages/DaySimulator";
 import DayOptimizer from "@/pages/DayOptimizer";
 import Rankings from "@/pages/Rankings";
