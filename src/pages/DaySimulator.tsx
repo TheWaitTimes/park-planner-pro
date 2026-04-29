@@ -336,27 +336,24 @@ export default function DaySimulator() {
             </div>
             <div className="grid grid-cols-1 gap-2">
               {([
-                { id: "rest", label: "Rest", name: "Rest Break", multiplier: 1 },
-                { id: "explore", label: "Explore the Park", name: "Explored Park", multiplier: 1.5 },
-                { id: "shop", label: "Hop into a Gift Shop", name: "Gift Shop Visit", multiplier: 0.5 },
-              ] as const).map((action) => {
-                const minutes = Math.max(5, Math.round((restMinutes * action.multiplier) / 5) * 5);
-                return (
-                  <button
-                    key={action.id}
-                    onClick={() =>
-                      dispatch({
-                        type: "COMPLETE_RIDE",
-                        payload: { rideId: action.id, rideName: action.name, waitTime: 0, onRideTime: minutes, walkingTime: 0 },
-                      })
-                    }
-                    className="w-full bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-secondary/15 hover:text-secondary transition flex items-center justify-between px-4"
-                  >
-                    <span>{action.label}</span>
-                    <span className="text-sm font-body text-muted-foreground">{minutes}m</span>
-                  </button>
-                );
-              })}
+                { id: "rest", label: "Rest", name: "Rest Break" },
+                { id: "explore", label: "Explore the Park", name: "Explored Park" },
+                { id: "shop", label: "Hop into a Gift Shop", name: "Gift Shop Visit" },
+              ] as const).map((action) => (
+                <button
+                  key={action.id}
+                  onClick={() =>
+                    dispatch({
+                      type: "COMPLETE_RIDE",
+                      payload: { rideId: action.id, rideName: action.name, waitTime: 0, onRideTime: restMinutes, walkingTime: 0 },
+                    })
+                  }
+                  className="w-full bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-secondary/15 hover:text-secondary transition flex items-center justify-between px-4"
+                >
+                  <span>{action.label}</span>
+                  <span className="text-sm font-body text-muted-foreground">{restMinutes}m</span>
+                </button>
+              ))}
             </div>
           </div>
 
