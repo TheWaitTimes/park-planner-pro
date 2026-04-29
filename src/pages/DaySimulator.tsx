@@ -134,15 +134,21 @@ export default function DaySimulator() {
           <div key={park} className="mb-6">
             <h3 className="text-2xl text-secondary mb-2">{park}</h3>
             <div className="space-y-1">
-              {rides.map((ride, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm font-body bg-card rounded px-3 py-2 border border-border">
-                  <span className="text-muted-foreground w-32 shrink-0">
-                    {formatTime(ride.timeStarted)} – {formatTime(ride.timeFinished)}
-                  </span>
-                  <span className="font-semibold text-foreground">{ride.rideName}</span>
-                  <span className="text-muted-foreground ml-auto">({ride.waitTime} min wait)</span>
-                </div>
-              ))}
+              {rides.map((ride, i) => {
+                const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+                const totalMin = ride.waitTime + ride.onRideTime;
+                return (
+                  <div key={i} className={`flex items-center gap-2 text-sm font-body rounded px-3 py-2 border ${isAction ? "bg-secondary/5 border-secondary/30" : "bg-card border-border"}`}>
+                    <span className="text-muted-foreground w-32 shrink-0">
+                      {formatTime(ride.timeStarted)} – {formatTime(ride.timeFinished)}
+                    </span>
+                    <span className={`font-semibold ${isAction ? "text-secondary" : "text-foreground"}`}>{ride.rideName}</span>
+                    <span className="text-muted-foreground ml-auto">
+                      {isAction ? `${totalMin} min` : `${ride.waitTime} min wait · ${ride.onRideTime} min ride`}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
