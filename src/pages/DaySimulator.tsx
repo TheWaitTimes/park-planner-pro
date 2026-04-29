@@ -327,7 +327,7 @@ export default function DaySimulator() {
         <div className="w-full lg:w-72">
           {/* Break */}
           <div className="bg-card rounded-lg p-4 border border-border mb-4">
-            <h3 className="font-display text-xl text-foreground mb-2">Take a Break</h3>
+            <h3 className="font-display text-xl text-foreground mb-2">Take a Break, Explore the park, Hop into a gift shop!</h3>
             <div className="flex items-center gap-2 mb-3">
               <input type="range" min="30" max="240" step="30" value={restMinutes}
                 onChange={(e) => setRestMinutes(Number(e.target.value))}
@@ -343,7 +343,7 @@ export default function DaySimulator() {
               }
               className="w-full bg-muted text-muted-foreground font-display text-lg py-2 rounded-lg hover:bg-muted/80 transition"
             >
-              Rest
+              Rest/Explore/Shop Etc.
             </button>
           </div>
 
