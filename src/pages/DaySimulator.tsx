@@ -1,7 +1,8 @@
 import { useReducer, useState, useEffect, useMemo } from "react";
 import {
-  Castle, Globe, Clapperboard, Trees, CloudRain, Star, type LucideIcon,
+  Castle, Globe, Clapperboard, Trees, CloudRain, Star, Download, type LucideIcon,
 } from "lucide-react";
+import jsPDF from "jspdf";
 import {
   simulationReducer,
   initialSimulationState,
@@ -108,6 +109,45 @@ export default function DaySimulator() {
     if (!grouped[ride.park]) grouped[ride.park] = [];
     grouped[ride.park].push(ride);
   });
+
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    let y = 20;
+
+    doc.setFontSize(20);
+    doc.text("Disney Day Itinerary", pageWidth / 2, y, { align: "center" });
+    y += 10;
+    doc.setFontSize(11);
+    doc.setTextColor(100);
+    doc.text(`Parks: ${state.selectedParks.join(" → ")}`, pageWidth / 2, y, { align: "center" });
+    y += 6;
+    doc.text(`Total Activities: ${state.completedRides.length}  ·  Total Wait: ${totalWait} min`, pageWidth / 2, y, { align: "center" });
+    y += 12;
+
+    Object.entries(grouped).forEach(([park, rides]) => {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.setFontSize(14);
+      doc.setTextColor(30, 60, 120);
+      doc.text(park, 14, y);
+      y += 7;
+      doc.setFontSize(10);
+      doc.setTextColor(40);
+      rides.forEach((ride) => {
+        if (y > 280) { doc.addPage(); y = 20; }
+        const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+        const totalMin = ride.waitTime + ride.onRideTime;
+        const detail = isAction ? `${totalMin} min` : `${ride.waitTime}m wait · ${ride.onRideTime}m ride`;
+        const time = `${formatTime(ride.timeStarted)} – ${formatTime(ride.timeFinished)}`;
+        doc.text(`${time}  ${ride.rideName}  (${detail})`, 18, y);
+        y += 6;
+      });
+      y += 4;
+    });
+
+    doc.save("disney-itinerary.pdf");
+  };
+
 
   // ENDED STATE
   if (state.status === "ended") {
@@ -365,7 +405,18 @@ export default function DaySimulator() {
 
           {/* Activity Timeline */}
           <div className="bg-card rounded-lg p-4 border border-border mb-4">
-            <h3 className="font-display text-xl text-foreground mb-2">Activity Timeline</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-display text-xl text-foreground">Activity Timeline</h3>
+              <button
+                onClick={handleExportPDF}
+                disabled={state.completedRides.length === 0}
+                className="inline-flex items-center gap-1 text-xs font-body font-semibold text-secondary hover:text-secondary/80 disabled:text-muted-foreground disabled:cursor-not-allowed transition"
+                title="Export itinerary as PDF"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export PDF
+              </button>
+            </div>
             <div className="space-y-3 max-h-80 overflow-y-auto text-sm font-body">
               {Object.entries(grouped).map(([park, rides]) => (
                 <div key={park}>
@@ -384,40 +435,6 @@ export default function DaySimulator() {
               {state.completedRides.length === 0 && (
                 <div className="text-muted-foreground italic">No activity yet</div>
               )}
-            </div>
-          </div>
-
-          {/* Itinerary */}
-          <div className="bg-card rounded-lg p-4 border border-border">
-            <h3 className="font-display text-xl text-foreground mb-2">Itinerary</h3>
-            <div className="space-y-3 max-h-80 overflow-y-auto text-sm font-body">
-              {(() => {
-                const byPark: Record<string, typeof state.completedRides> = {};
-                state.selectedParks.forEach((p) => (byPark[p] = []));
-                [...state.completedRides]
-                  .sort((a, b) => a.timeStarted.getTime() - b.timeStarted.getTime())
-                  .forEach((r) => {
-                    if (!byPark[r.park]) byPark[r.park] = [];
-                    byPark[r.park].push(r);
-                  });
-                const parkOrder = state.selectedParks.filter((p) => byPark[p]?.length);
-                if (parkOrder.length === 0) {
-                  return <div className="text-muted-foreground italic">No itinerary yet</div>;
-                }
-                return parkOrder.map((park) => (
-                  <div key={park}>
-                    <div className="font-semibold text-foreground mb-1">{park}</div>
-                    <ol className="ml-2 space-y-1">
-                      {byPark[park].map((ride, i) => (
-                        <li key={i} className="flex gap-2">
-                          <span className="text-muted-foreground w-12 shrink-0">{formatTime(ride.timeStarted)}</span>
-                          <span className="text-foreground">{ride.rideName}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                ));
-              })()}
             </div>
           </div>
         </div>
