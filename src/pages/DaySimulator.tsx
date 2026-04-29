@@ -405,7 +405,18 @@ export default function DaySimulator() {
 
           {/* Activity Timeline */}
           <div className="bg-card rounded-lg p-4 border border-border mb-4">
-            <h3 className="font-display text-xl text-foreground mb-2">Activity Timeline</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-display text-xl text-foreground">Activity Timeline</h3>
+              <button
+                onClick={handleExportPDF}
+                disabled={state.completedRides.length === 0}
+                className="inline-flex items-center gap-1 text-xs font-body font-semibold text-secondary hover:text-secondary/80 disabled:text-muted-foreground disabled:cursor-not-allowed transition"
+                title="Export itinerary as PDF"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Export PDF
+              </button>
+            </div>
             <div className="space-y-3 max-h-80 overflow-y-auto text-sm font-body">
               {Object.entries(grouped).map(([park, rides]) => (
                 <div key={park}>
