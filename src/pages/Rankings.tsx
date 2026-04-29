@@ -62,9 +62,9 @@ export default function Rankings() {
   const { items, label, icon: HeaderIcon } = CATEGORY_DATA[category];
 
   const filteredItems = useMemo(() => {
-    if (parkFilter === "All Parks") return items;
+    if (category !== "rides" || parkFilter === "All Parks") return items;
     return items.filter((i) => i.parkLocation === parkFilter);
-  }, [items, parkFilter]);
+  }, [items, parkFilter, category]);
 
   const startQuiz = useCallback(() => {
     const n = filteredItems.length;
