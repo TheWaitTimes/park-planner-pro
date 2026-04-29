@@ -134,15 +134,21 @@ export default function DaySimulator() {
           <div key={park} className="mb-6">
             <h3 className="text-2xl text-secondary mb-2">{park}</h3>
             <div className="space-y-1">
-              {rides.map((ride, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm font-body bg-card rounded px-3 py-2 border border-border">
-                  <span className="text-muted-foreground w-32 shrink-0">
-                    {formatTime(ride.timeStarted)} – {formatTime(ride.timeFinished)}
-                  </span>
-                  <span className="font-semibold text-foreground">{ride.rideName}</span>
-                  <span className="text-muted-foreground ml-auto">({ride.waitTime} min wait)</span>
-                </div>
-              ))}
+              {rides.map((ride, i) => {
+                const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+                const totalMin = ride.waitTime + ride.onRideTime;
+                return (
+                  <div key={i} className={`flex items-center gap-2 text-sm font-body rounded px-3 py-2 border ${isAction ? "bg-secondary/5 border-secondary/30" : "bg-card border-border"}`}>
+                    <span className="text-muted-foreground w-32 shrink-0">
+                      {formatTime(ride.timeStarted)} – {formatTime(ride.timeFinished)}
+                    </span>
+                    <span className={`font-semibold ${isAction ? "text-secondary" : "text-foreground"}`}>{ride.rideName}</span>
+                    <span className="text-muted-foreground ml-auto">
+                      {isAction ? `${totalMin} min` : `${ride.waitTime} min wait · ${ride.onRideTime} min ride`}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
@@ -357,22 +363,26 @@ export default function DaySimulator() {
             </div>
           </div>
 
-          {/* Ride History */}
+          {/* Activity Timeline */}
           <div className="bg-card rounded-lg p-4 border border-border">
-            <h3 className="font-display text-xl text-foreground mb-2">Ride History</h3>
+            <h3 className="font-display text-xl text-foreground mb-2">Activity Timeline</h3>
             <div className="space-y-3 max-h-80 overflow-y-auto text-sm font-body">
               {Object.entries(grouped).map(([park, rides]) => (
                 <div key={park}>
                   <div className="font-semibold text-secondary mb-1">{park}</div>
-                  {rides.map((ride, i) => (
-                    <div key={i} className="text-muted-foreground ml-2">
-                      {formatTime(ride.timeStarted)} – {ride.rideName} ({ride.waitTime}m)
-                    </div>
-                  ))}
+                  {rides.map((ride, i) => {
+                    const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+                    const totalMin = ride.waitTime + ride.onRideTime;
+                    return (
+                      <div key={i} className={`ml-2 ${isAction ? "text-secondary" : "text-muted-foreground"}`}>
+                        {formatTime(ride.timeStarted)} – {ride.rideName} ({isAction ? `${totalMin}m` : `${ride.waitTime}m wait`})
+                      </div>
+                    );
+                  })}
                 </div>
               ))}
               {state.completedRides.length === 0 && (
-                <div className="text-muted-foreground italic">No rides yet</div>
+                <div className="text-muted-foreground italic">No activity yet</div>
               )}
             </div>
           </div>
