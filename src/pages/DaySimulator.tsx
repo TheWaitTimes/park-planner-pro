@@ -1,7 +1,8 @@
 import { useReducer, useState, useEffect, useMemo } from "react";
 import {
-  Castle, Globe, Clapperboard, Trees, CloudRain, Star, type LucideIcon,
+  Castle, Globe, Clapperboard, Trees, CloudRain, Star, Download, type LucideIcon,
 } from "lucide-react";
+import jsPDF from "jspdf";
 import {
   simulationReducer,
   initialSimulationState,
