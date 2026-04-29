@@ -437,40 +437,6 @@ export default function DaySimulator() {
               )}
             </div>
           </div>
-
-          {/* Itinerary */}
-          <div className="bg-card rounded-lg p-4 border border-border">
-            <h3 className="font-display text-xl text-foreground mb-2">Itinerary</h3>
-            <div className="space-y-3 max-h-80 overflow-y-auto text-sm font-body">
-              {(() => {
-                const byPark: Record<string, typeof state.completedRides> = {};
-                state.selectedParks.forEach((p) => (byPark[p] = []));
-                [...state.completedRides]
-                  .sort((a, b) => a.timeStarted.getTime() - b.timeStarted.getTime())
-                  .forEach((r) => {
-                    if (!byPark[r.park]) byPark[r.park] = [];
-                    byPark[r.park].push(r);
-                  });
-                const parkOrder = state.selectedParks.filter((p) => byPark[p]?.length);
-                if (parkOrder.length === 0) {
-                  return <div className="text-muted-foreground italic">No itinerary yet</div>;
-                }
-                return parkOrder.map((park) => (
-                  <div key={park}>
-                    <div className="font-semibold text-foreground mb-1">{park}</div>
-                    <ol className="ml-2 space-y-1">
-                      {byPark[park].map((ride, i) => (
-                        <li key={i} className="flex gap-2">
-                          <span className="text-muted-foreground w-12 shrink-0">{formatTime(ride.timeStarted)}</span>
-                          <span className="text-foreground">{ride.rideName}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                ));
-              })()}
-            </div>
-          </div>
         </div>
       </div>
     </div>
