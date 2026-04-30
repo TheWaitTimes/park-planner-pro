@@ -123,12 +123,15 @@ export default function DaySimulator() {
       dateStyle: "medium",
       timeStyle: "short",
     });
-    const simDateStr = state.startTime
-      ? state.startTime.toLocaleDateString([], { dateStyle: "long" } as Intl.DateTimeFormatOptions)
+    const firstStart = state.completedRides[0]?.timeStarted ?? state.currentTime;
+    const lastEnd =
+      state.completedRides[state.completedRides.length - 1]?.timeFinished ?? state.currentTime;
+    const simDateStr = firstStart
+      ? firstStart.toLocaleDateString([], { dateStyle: "long" } as Intl.DateTimeFormatOptions)
       : "—";
     const simWindowStr =
-      state.startTime && state.endTime
-        ? `${formatTime(state.startTime)} – ${formatTime(state.endTime)}`
+      firstStart && lastEnd
+        ? `${formatTime(firstStart)} – ${formatTime(lastEnd)}`
         : "—";
 
     // ---------- COVER PAGE ----------
