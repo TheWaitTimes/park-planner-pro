@@ -250,12 +250,22 @@ export default function DaySimulator() {
           </div>
         ))}
 
-        <button
-          className="mt-6 bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"
-          onClick={() => window.location.reload()}
-        >
-          Start New Day
-        </button>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            className="bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"
+            onClick={() => window.location.reload()}
+          >
+            Start New Day
+          </button>
+          <button
+            onClick={handleExportPDF}
+            disabled={state.completedRides.length === 0}
+            className="inline-flex items-center gap-2 border border-secondary text-secondary font-display text-xl px-8 py-3 rounded-lg hover:bg-secondary/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-5 h-5" />
+            Export PDF
+          </button>
+        </div>
       </div>
     );
   }
