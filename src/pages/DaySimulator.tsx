@@ -113,16 +113,73 @@ export default function DaySimulator() {
   const handleExportPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
-    let y = 20;
+    const pageHeight = doc.internal.pageSize.getHeight();
 
-    doc.setFontSize(20);
-    doc.text("Disney Day Itinerary", pageWidth / 2, y, { align: "center" });
-    y += 10;
-    doc.setFontSize(11);
-    doc.setTextColor(100);
-    doc.text(`Parks: ${state.selectedParks.join(" → ")}`, pageWidth / 2, y, { align: "center" });
-    y += 6;
-    doc.text(`Total Activities: ${state.completedRides.length}  ·  Total Wait: ${totalWait} min`, pageWidth / 2, y, { align: "center" });
+    const totalSimMinutes = state.completedRides.reduce(
+      (sum, r) => sum + r.waitTime + r.onRideTime + (r.walkingTime ?? 0),
+      0,
+    );
+    const generatedAt = new Date().toLocaleString([], {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+    const firstStart = state.completedRides[0]?.timeStarted ?? state.currentTime;
+    const lastEnd =
+      state.completedRides[state.completedRides.length - 1]?.timeFinished ?? state.currentTime;
+    const simDateStr = firstStart
+      ? firstStart.toLocaleDateString([], { dateStyle: "long" } as Intl.DateTimeFormatOptions)
+      : "—";
+    const simWindowStr =
+      firstStart && lastEnd
+        ? `${formatTime(firstStart)} – ${formatTime(lastEnd)}`
+        : "—";
+
+    // ---------- COVER PAGE ----------
+    let cy = 60;
+    doc.setFontSize(28);
+    doc.setTextColor(20, 30, 70);
+    doc.text("Disney Day Itinerary", pageWidth / 2, cy, { align: "center" });
+    cy += 10;
+    doc.setFontSize(12);
+    doc.setTextColor(110);
+    doc.text("Theme Park Data Hub", pageWidth / 2, cy, { align: "center" });
+
+    cy += 30;
+    doc.setDrawColor(200);
+    doc.line(30, cy, pageWidth - 30, cy);
+    cy += 14;
+
+    const label = (l: string, v: string) => {
+      doc.setFontSize(11);
+      doc.setTextColor(120);
+      doc.text(l.toUpperCase(), 40, cy);
+      doc.setFontSize(14);
+      doc.setTextColor(30);
+      doc.text(v, pageWidth - 40, cy, { align: "right" });
+      cy += 12;
+    };
+
+    label("Parks Visited", state.selectedParks.join(" → ") || "—");
+    label("Simulated Date", simDateStr);
+    label("Simulated Window", simWindowStr);
+    label("Total Simulated Minutes", `${totalSimMinutes} min`);
+    label("Total Wait Time", `${totalWait} min`);
+    label("Total Activities", `${state.completedRides.length}`);
+
+    cy += 8;
+    doc.setDrawColor(200);
+    doc.line(30, cy, pageWidth - 30, cy);
+
+    doc.setFontSize(10);
+    doc.setTextColor(140);
+    doc.text(`Generated ${generatedAt}`, pageWidth / 2, pageHeight - 20, { align: "center" });
+
+    // ---------- ITINERARY ----------
+    doc.addPage();
+    let y = 20;
+    doc.setFontSize(18);
+    doc.setTextColor(20, 30, 70);
+    doc.text("Activity Timeline", pageWidth / 2, y, { align: "center" });
     y += 12;
 
     Object.entries(grouped).forEach(([park, rides]) => {
@@ -193,12 +250,22 @@ export default function DaySimulator() {
           </div>
         ))}
 
-        <button
-          className="mt-6 bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"
-          onClick={() => window.location.reload()}
-        >
-          Start New Day
-        </button>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button
+            className="bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"
+            onClick={() => window.location.reload()}
+          >
+            Start New Day
+          </button>
+          <button
+            onClick={handleExportPDF}
+            disabled={state.completedRides.length === 0}
+            className="inline-flex items-center gap-2 border border-secondary text-secondary font-display text-xl px-8 py-3 rounded-lg hover:bg-secondary/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-5 h-5" />
+            Export PDF
+          </button>
+        </div>
       </div>
     );
   }
