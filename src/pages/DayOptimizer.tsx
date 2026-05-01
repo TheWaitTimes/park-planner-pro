@@ -3,9 +3,34 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import {
   Sun, CloudSun, Moon, Shuffle, Castle, Globe, Clapperboard, Trees,
-  BarChart3, TrendingUp, Layers, Play, Download, Ticket,
+  BarChart3, TrendingUp, Layers, Play, Download, Ticket, CloudRain,
   type LucideIcon,
 } from "lucide-react";
+
+type Weather = "none" | "low" | "medium" | "high";
+
+const WEATHER_LABELS: Record<Weather, string> = {
+  none: "No Rain",
+  low: "Low Chance",
+  medium: "Medium Chance",
+  high: "High Chance",
+};
+
+// Difficulty bump applied when weather-sensitive rides are in the plan
+const WEATHER_DIFFICULTY_BUMP: Record<Weather, number> = {
+  none: 0,
+  low: 1,
+  medium: 2,
+  high: 3,
+};
+
+// Probability a weather-sensitive ride shuts down at each level
+const WEATHER_SHUTDOWN_CHANCE: Record<Weather, number> = {
+  none: 0,
+  low: 0.15,
+  medium: 0.4,
+  high: 0.7,
+};
 import { PARKS, type Ride } from "@/data/parks";
 
 type Slot = "morning" | "afternoon" | "night" | "hop";
