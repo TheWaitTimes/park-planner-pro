@@ -47,7 +47,8 @@ export default function DaySimulator() {
   const [endHour, setEndHour] = useState(21);
   const [crowdLevel, setCrowdLevel] = useState("Moderate");
   const [weatherChance, setWeatherChance] = useState(0);
-  const [restMinutes, setRestMinutes] = useState(30);
+  const [restMinutes, setRestMinutes] = useState(15);
+  const [pendingRide, setPendingRide] = useState<typeof ridesWithWaits[0] | null>(null);
 
   const crowdModifier = crowdLevel === "Light" ? -20 : crowdLevel === "Heavy" ? 20 : 0;
   const currentParkName = state.selectedParks[state.currentParkIndex];
