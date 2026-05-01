@@ -49,6 +49,11 @@ export default function DaySimulator() {
   const [weatherChance, setWeatherChance] = useState(0);
   const [restMinutes, setRestMinutes] = useState(15);
   const [pendingRide, setPendingRide] = useState<{ id: string; name: string; waitTime: number; onRideTime: number; parkArea: string } | null>(null);
+  const [pendingAction, setPendingAction] = useState<
+    | { kind: "break"; id: "rest" | "explore" | "shop"; label: string; name: string; minutes: number }
+    | { kind: "hop"; targetPark: string; travelTime: number }
+    | null
+  >(null);
 
   const crowdModifier = crowdLevel === "Light" ? -20 : crowdLevel === "Heavy" ? 20 : 0;
   const currentParkName = state.selectedParks[state.currentParkIndex];
@@ -425,7 +430,7 @@ export default function DaySimulator() {
               .map((park) => (
                 <button
                   key={park}
-                  onClick={() => dispatch({ type: "PARK_HOP", payload: { travelTime: 30, targetPark: park } })}
+                  onClick={() => setPendingAction({ kind: "hop", targetPark: park, travelTime: 30 })}
                   className="bg-primary text-primary-foreground font-display text-lg px-5 py-2 rounded-lg hover:opacity-90 transition"
                 >
                   {park}
@@ -454,9 +459,12 @@ export default function DaySimulator() {
                 <button
                   key={action.id}
                   onClick={() =>
-                    dispatch({
-                      type: "COMPLETE_RIDE",
-                      payload: { rideId: action.id, rideName: action.name, waitTime: 0, onRideTime: restMinutes, walkingTime: 0 },
+                    setPendingAction({
+                      kind: "break",
+                      id: action.id,
+                      label: action.label,
+                      name: action.name,
+                      minutes: restMinutes,
                     })
                   }
                   className="w-full bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-secondary/15 hover:text-secondary transition flex items-center justify-between px-4"
@@ -559,6 +567,88 @@ export default function DaySimulator() {
                     },
                   });
                   setPendingRide(null);
+                }}
+                className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action / Park-Hop Confirmation Modal */}
+      {pendingAction && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+          onClick={() => setPendingAction(null)}
+        >
+          <div
+            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-display text-2xl text-foreground mb-1">
+              {pendingAction.kind === "hop" ? "Confirm Park Hop" : "Confirm Activity"}
+            </h3>
+            <p className="text-sm font-body text-muted-foreground mb-4">
+              {pendingAction.kind === "hop"
+                ? "Travel to a different park?"
+                : "Spend this time on a non-ride activity?"}
+            </p>
+            <div className="bg-secondary/5 border border-secondary/30 rounded-lg p-4 mb-5">
+              {pendingAction.kind === "hop" ? (
+                <>
+                  <div className="text-xs font-body text-muted-foreground uppercase tracking-wide mb-1">
+                    Park Hop
+                  </div>
+                  <div className="font-display text-lg text-foreground mb-3">
+                    {currentParkName} → {pendingAction.targetPark}
+                  </div>
+                  <div className="flex justify-between text-sm font-body">
+                    <span className="text-muted-foreground">Travel Time</span>
+                    <span className="font-semibold text-foreground">{pendingAction.travelTime} min</span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="text-xs font-body text-muted-foreground uppercase tracking-wide mb-1">
+                    {currentParkName}
+                  </div>
+                  <div className="font-display text-lg text-foreground mb-3">{pendingAction.label}</div>
+                  <div className="flex justify-between text-sm font-body">
+                    <span className="text-muted-foreground">Duration</span>
+                    <span className="font-semibold text-secondary">{pendingAction.minutes} min</span>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPendingAction(null)}
+                className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (pendingAction.kind === "hop") {
+                    dispatch({
+                      type: "PARK_HOP",
+                      payload: { travelTime: pendingAction.travelTime, targetPark: pendingAction.targetPark },
+                    });
+                  } else {
+                    dispatch({
+                      type: "COMPLETE_RIDE",
+                      payload: {
+                        rideId: pendingAction.id,
+                        rideName: pendingAction.name,
+                        waitTime: 0,
+                        onRideTime: pendingAction.minutes,
+                        walkingTime: 0,
+                      },
+                    });
+                  }
+                  setPendingAction(null);
                 }}
                 className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
               >
