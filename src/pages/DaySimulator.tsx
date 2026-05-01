@@ -430,7 +430,7 @@ export default function DaySimulator() {
               .map((park) => (
                 <button
                   key={park}
-                  onClick={() => dispatch({ type: "PARK_HOP", payload: { travelTime: 30, targetPark: park } })}
+                  onClick={() => setPendingAction({ kind: "hop", targetPark: park, travelTime: 30 })}
                   className="bg-primary text-primary-foreground font-display text-lg px-5 py-2 rounded-lg hover:opacity-90 transition"
                 >
                   {park}
