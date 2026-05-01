@@ -252,7 +252,17 @@ export default function DayOptimizer() {
   const totalWait = report?.reduce((s, r) => s + r.expectedWait, 0) ?? 0;
   const totalRideTime = report?.reduce((s, r) => s + r.expectedWait + r.onRideTime + 5, 0) ?? 0;
   const hopUsed = (report?.filter((r) => r.slot === "hop").length ?? 0) > 0;
-  const difficulty = report ? computeDifficulty(totalRideTime, hours, hopUsed) : null;
+  const weatherSensitiveRides = useMemo(() => {
+    if (!report) return [];
+    return report.filter((r) => {
+      const ride = PARKS[r.parkName]?.rides.find((rr) => rr.id === r.rideId);
+      return ride?.weatherEffect === 1;
+    });
+  }, [report]);
+  const weatherBump = weather === "none" || weatherSensitiveRides.length === 0
+    ? 0
+    : WEATHER_DIFFICULTY_BUMP[weather];
+  const difficulty = report ? computeDifficulty(totalRideTime, hours, hopUsed, weatherBump) : null;
 
   const groupedReport = useMemo(() => {
     if (!report) return null;
