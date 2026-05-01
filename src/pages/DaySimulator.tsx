@@ -390,15 +390,12 @@ export default function DaySimulator() {
                 <button
                   key={ride.id}
                   onClick={() =>
-                    dispatch({
-                      type: "COMPLETE_RIDE",
-                      payload: {
-                        rideId: ride.id,
-                        rideName: ride.name,
-                        waitTime: ride.waitTime,
-                        onRideTime: ride.onRideTime,
-                        walkingTime: 5,
-                      },
+                    setPendingRide({
+                      id: ride.id,
+                      name: ride.name,
+                      waitTime: ride.waitTime,
+                      onRideTime: ride.onRideTime,
+                      parkArea: ride.parkArea,
                     })
                   }
                   className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
