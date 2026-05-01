@@ -504,6 +504,70 @@ export default function DaySimulator() {
           </div>
         </div>
       </div>
+
+      {/* Ride Confirmation Modal */}
+      {pendingRide && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+          onClick={() => setPendingRide(null)}
+        >
+          <div
+            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-display text-2xl text-foreground mb-1">Confirm Ride</h3>
+            <p className="text-sm font-body text-muted-foreground mb-4">
+              Ready to ride this attraction?
+            </p>
+            <div className="bg-secondary/5 border border-secondary/30 rounded-lg p-4 mb-5">
+              <div className="text-xs font-body text-muted-foreground uppercase tracking-wide mb-1">
+                {pendingRide.parkArea}
+              </div>
+              <div className="font-display text-lg text-foreground mb-3">{pendingRide.name}</div>
+              <div className="flex justify-between text-sm font-body">
+                <span className="text-muted-foreground">Wait Time</span>
+                <span className="font-semibold text-foreground">{pendingRide.waitTime} min</span>
+              </div>
+              <div className="flex justify-between text-sm font-body">
+                <span className="text-muted-foreground">Ride Time</span>
+                <span className="font-semibold text-foreground">{pendingRide.onRideTime} min</span>
+              </div>
+              <div className="border-t border-border mt-2 pt-2 flex justify-between text-sm font-body">
+                <span className="text-muted-foreground">Total</span>
+                <span className="font-semibold text-secondary">
+                  {pendingRide.waitTime + pendingRide.onRideTime} min
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPendingRide(null)}
+                className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  dispatch({
+                    type: "COMPLETE_RIDE",
+                    payload: {
+                      rideId: pendingRide.id,
+                      rideName: pendingRide.name,
+                      waitTime: pendingRide.waitTime,
+                      onRideTime: pendingRide.onRideTime,
+                      walkingTime: 5,
+                    },
+                  });
+                  setPendingRide(null);
+                }}
+                className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
