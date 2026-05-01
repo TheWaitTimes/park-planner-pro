@@ -436,6 +436,28 @@ export default function DayOptimizer() {
               </div>
             </div>
 
+            <div>
+              <span className="text-sm font-body font-semibold text-foreground inline-flex items-center gap-1.5">
+                <CloudRain className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
+                Expected Weather
+              </span>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {(Object.keys(WEATHER_LABELS) as Weather[]).map((w) => (
+                  <button
+                    key={w}
+                    onClick={() => { setWeather(w); setReport(null); }}
+                    className={`py-2 rounded-md text-xs font-body font-semibold transition ${
+                      weather === w
+                        ? "bg-secondary text-secondary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {WEATHER_LABELS[w]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <label className="block">
               <span className="text-sm font-body font-semibold text-foreground">
                 Hours in Park: <span className="text-secondary">{hours}h</span>
