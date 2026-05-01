@@ -535,7 +535,42 @@ export default function DayOptimizer() {
                     {difficulty.label}
                   </div>
                 </div>
+                {weatherBump > 0 && (
+                  <div className="border-t border-border pt-3 text-xs font-body text-muted-foreground text-center">
+                    Includes <span className="font-semibold text-foreground">+{weatherBump}</span> from{" "}
+                    {WEATHER_LABELS[weather].toLowerCase()} of rain
+                    ({weatherSensitiveRides.length} weather-sensitive ride{weatherSensitiveRides.length !== 1 ? "s" : ""})
+                  </div>
+                )}
               </div>
+
+              {/* Weather impact */}
+              {weather !== "none" && weatherSensitiveRides.length > 0 && (
+                <div className="bg-card rounded-lg border border-border overflow-hidden">
+                  <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                    <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                      <CloudRain className="w-4 h-4 text-secondary" strokeWidth={2} />
+                      Weather Impact
+                    </h3>
+                    <p className="text-xs font-body text-muted-foreground mt-0.5">
+                      {WEATHER_LABELS[weather]} of rain · ~{Math.round(WEATHER_SHUTDOWN_CHANCE[weather] * 100)}% shutdown risk per ride below
+                    </p>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {weatherSensitiveRides.map((r) => (
+                      <div key={`weather-${r.slot}-${r.rideId}`} className="px-4 py-2 flex items-center gap-2 text-sm font-body">
+                        <CloudRain className="w-3.5 h-3.5 text-muted-foreground shrink-0" strokeWidth={2} />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-foreground truncate">{r.rideName}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {r.parkArea} · {SLOT_LABELS[r.slot]}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Per-slot summary */}
               <div className="bg-card rounded-lg border border-border overflow-hidden">
