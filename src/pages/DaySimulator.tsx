@@ -47,7 +47,8 @@ export default function DaySimulator() {
   const [endHour, setEndHour] = useState(21);
   const [crowdLevel, setCrowdLevel] = useState("Moderate");
   const [weatherChance, setWeatherChance] = useState(0);
-  const [restMinutes, setRestMinutes] = useState(30);
+  const [restMinutes, setRestMinutes] = useState(15);
+  const [pendingRide, setPendingRide] = useState<{ id: string; name: string; waitTime: number; onRideTime: number; parkArea: string } | null>(null);
 
   const crowdModifier = crowdLevel === "Light" ? -20 : crowdLevel === "Heavy" ? 20 : 0;
   const currentParkName = state.selectedParks[state.currentParkIndex];
@@ -389,15 +390,12 @@ export default function DaySimulator() {
                 <button
                   key={ride.id}
                   onClick={() =>
-                    dispatch({
-                      type: "COMPLETE_RIDE",
-                      payload: {
-                        rideId: ride.id,
-                        rideName: ride.name,
-                        waitTime: ride.waitTime,
-                        onRideTime: ride.onRideTime,
-                        walkingTime: 5,
-                      },
+                    setPendingRide({
+                      id: ride.id,
+                      name: ride.name,
+                      waitTime: ride.waitTime,
+                      onRideTime: ride.onRideTime,
+                      parkArea: ride.parkArea,
                     })
                   }
                   className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
@@ -442,7 +440,7 @@ export default function DaySimulator() {
           <div className="bg-card rounded-lg p-4 border border-border mb-4">
             <h3 className="font-display text-xl text-foreground mb-2">Take a Break, Explore the park, Hop into a gift shop!</h3>
             <div className="flex items-center gap-2 mb-3">
-              <input type="range" min="30" max="240" step="30" value={restMinutes}
+              <input type="range" min="15" max="240" step="15" value={restMinutes}
                 onChange={(e) => setRestMinutes(Number(e.target.value))}
                 className="flex-1 accent-secondary" />
               <span className="text-sm font-body text-muted-foreground w-16 text-right">{restMinutes} min</span>
@@ -506,6 +504,70 @@ export default function DaySimulator() {
           </div>
         </div>
       </div>
+
+      {/* Ride Confirmation Modal */}
+      {pendingRide && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4"
+          onClick={() => setPendingRide(null)}
+        >
+          <div
+            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-display text-2xl text-foreground mb-1">Confirm Ride</h3>
+            <p className="text-sm font-body text-muted-foreground mb-4">
+              Ready to ride this attraction?
+            </p>
+            <div className="bg-secondary/5 border border-secondary/30 rounded-lg p-4 mb-5">
+              <div className="text-xs font-body text-muted-foreground uppercase tracking-wide mb-1">
+                {pendingRide.parkArea}
+              </div>
+              <div className="font-display text-lg text-foreground mb-3">{pendingRide.name}</div>
+              <div className="flex justify-between text-sm font-body">
+                <span className="text-muted-foreground">Wait Time</span>
+                <span className="font-semibold text-foreground">{pendingRide.waitTime} min</span>
+              </div>
+              <div className="flex justify-between text-sm font-body">
+                <span className="text-muted-foreground">Ride Time</span>
+                <span className="font-semibold text-foreground">{pendingRide.onRideTime} min</span>
+              </div>
+              <div className="border-t border-border mt-2 pt-2 flex justify-between text-sm font-body">
+                <span className="text-muted-foreground">Total</span>
+                <span className="font-semibold text-secondary">
+                  {pendingRide.waitTime + pendingRide.onRideTime} min
+                </span>
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPendingRide(null)}
+                className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  dispatch({
+                    type: "COMPLETE_RIDE",
+                    payload: {
+                      rideId: pendingRide.id,
+                      rideName: pendingRide.name,
+                      waitTime: pendingRide.waitTime,
+                      onRideTime: pendingRide.onRideTime,
+                      walkingTime: 5,
+                    },
+                  });
+                  setPendingRide(null);
+                }}
+                className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
