@@ -511,7 +511,7 @@ export default function DayOptimizer() {
                 <div className="text-center pb-2 border-b border-border">
                   <div className="font-display text-2xl text-foreground">Day Optimizer Report</div>
                   <div className="text-xs font-body text-muted-foreground">
-                    {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h
+                    {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h · {WEATHER_LABELS[weather]}
                   </div>
                 </div>
                 {/* Summary */}
