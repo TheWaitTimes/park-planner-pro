@@ -442,7 +442,7 @@ export default function DaySimulator() {
           <div className="bg-card rounded-lg p-4 border border-border mb-4">
             <h3 className="font-display text-xl text-foreground mb-2">Take a Break, Explore the park, Hop into a gift shop!</h3>
             <div className="flex items-center gap-2 mb-3">
-              <input type="range" min="30" max="240" step="30" value={restMinutes}
+              <input type="range" min="15" max="240" step="15" value={restMinutes}
                 onChange={(e) => setRestMinutes(Number(e.target.value))}
                 className="flex-1 accent-secondary" />
               <span className="text-sm font-body text-muted-foreground w-16 text-right">{restMinutes} min</span>
