@@ -149,6 +149,7 @@ export default function DayOptimizer() {
   const [hopPark, setHopPark] = useState("EPCOT");
   const [month, setMonth] = useState("October");
   const [crowd, setCrowd] = useState<keyof typeof CROWD_MULTIPLIER>("Moderate");
+  const [weather, setWeather] = useState<Weather>("none");
   const [hours, setHours] = useState(10);
   const [plan, setPlan] = useState<Plan>({ morning: [], afternoon: [], night: [], hop: [] });
   const [report, setReport] = useState<ReportRow[] | null>(null);
