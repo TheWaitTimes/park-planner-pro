@@ -125,13 +125,15 @@ function computeExpectedWait(
 function computeDifficulty(
   totalRideTimeMin: number,
   hoursAvailable: number,
-  hopUsed: boolean
+  hopUsed: boolean,
+  weatherBump: number
 ): { score: number; label: string; color: string } {
   const availableMin = hoursAvailable * 60;
   const ratio = totalRideTimeMin / Math.max(availableMin, 1);
   // ratio 0 -> 1, ratio 1 -> 10
   let score = Math.round(1 + ratio * 9);
   if (hopUsed) score += 1;
+  score += weatherBump;
   score = Math.max(1, Math.min(10, score));
   const label =
     score <= 3 ? "Relaxed" : score <= 6 ? "Moderate" : score <= 8 ? "Challenging" : "Extreme";
