@@ -3,9 +3,34 @@ import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import {
   Sun, CloudSun, Moon, Shuffle, Castle, Globe, Clapperboard, Trees,
-  BarChart3, TrendingUp, Layers, Play, Download, Ticket,
+  BarChart3, TrendingUp, Layers, Play, Download, Ticket, CloudRain,
   type LucideIcon,
 } from "lucide-react";
+
+type Weather = "none" | "low" | "medium" | "high";
+
+const WEATHER_LABELS: Record<Weather, string> = {
+  none: "No Rain",
+  low: "Low Chance",
+  medium: "Medium Chance",
+  high: "High Chance",
+};
+
+// Difficulty bump applied when weather-sensitive rides are in the plan
+const WEATHER_DIFFICULTY_BUMP: Record<Weather, number> = {
+  none: 0,
+  low: 1,
+  medium: 2,
+  high: 3,
+};
+
+// Probability a weather-sensitive ride shuts down at each level
+const WEATHER_SHUTDOWN_CHANCE: Record<Weather, number> = {
+  none: 0,
+  low: 0.15,
+  medium: 0.4,
+  high: 0.7,
+};
 import { PARKS, type Ride } from "@/data/parks";
 
 type Slot = "morning" | "afternoon" | "night" | "hop";
@@ -100,13 +125,15 @@ function computeExpectedWait(
 function computeDifficulty(
   totalRideTimeMin: number,
   hoursAvailable: number,
-  hopUsed: boolean
+  hopUsed: boolean,
+  weatherBump: number
 ): { score: number; label: string; color: string } {
   const availableMin = hoursAvailable * 60;
   const ratio = totalRideTimeMin / Math.max(availableMin, 1);
   // ratio 0 -> 1, ratio 1 -> 10
   let score = Math.round(1 + ratio * 9);
   if (hopUsed) score += 1;
+  score += weatherBump;
   score = Math.max(1, Math.min(10, score));
   const label =
     score <= 3 ? "Relaxed" : score <= 6 ? "Moderate" : score <= 8 ? "Challenging" : "Extreme";
@@ -122,6 +149,7 @@ export default function DayOptimizer() {
   const [hopPark, setHopPark] = useState("EPCOT");
   const [month, setMonth] = useState("October");
   const [crowd, setCrowd] = useState<keyof typeof CROWD_MULTIPLIER>("Moderate");
+  const [weather, setWeather] = useState<Weather>("none");
   const [hours, setHours] = useState(10);
   const [plan, setPlan] = useState<Plan>({ morning: [], afternoon: [], night: [], hop: [] });
   const [report, setReport] = useState<ReportRow[] | null>(null);
@@ -224,7 +252,17 @@ export default function DayOptimizer() {
   const totalWait = report?.reduce((s, r) => s + r.expectedWait, 0) ?? 0;
   const totalRideTime = report?.reduce((s, r) => s + r.expectedWait + r.onRideTime + 5, 0) ?? 0;
   const hopUsed = (report?.filter((r) => r.slot === "hop").length ?? 0) > 0;
-  const difficulty = report ? computeDifficulty(totalRideTime, hours, hopUsed) : null;
+  const weatherSensitiveRides = useMemo(() => {
+    if (!report) return [];
+    return report.filter((r) => {
+      const ride = PARKS[r.parkName]?.rides.find((rr) => rr.id === r.rideId);
+      return ride?.weatherEffect === 1;
+    });
+  }, [report]);
+  const weatherBump = weather === "none" || weatherSensitiveRides.length === 0
+    ? 0
+    : WEATHER_DIFFICULTY_BUMP[weather];
+  const difficulty = report ? computeDifficulty(totalRideTime, hours, hopUsed, weatherBump) : null;
 
   const groupedReport = useMemo(() => {
     if (!report) return null;
@@ -398,6 +436,28 @@ export default function DayOptimizer() {
               </div>
             </div>
 
+            <div>
+              <span className="text-sm font-body font-semibold text-foreground inline-flex items-center gap-1.5">
+                <CloudRain className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
+                Expected Weather
+              </span>
+              <div className="grid grid-cols-2 gap-2 mt-1">
+                {(Object.keys(WEATHER_LABELS) as Weather[]).map((w) => (
+                  <button
+                    key={w}
+                    onClick={() => { setWeather(w); setReport(null); }}
+                    className={`py-2 rounded-md text-xs font-body font-semibold transition ${
+                      weather === w
+                        ? "bg-secondary text-secondary-foreground"
+                        : "bg-muted text-muted-foreground hover:bg-muted/80"
+                    }`}
+                  >
+                    {WEATHER_LABELS[w]}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <label className="block">
               <span className="text-sm font-body font-semibold text-foreground">
                 Hours in Park: <span className="text-secondary">{hours}h</span>
@@ -451,7 +511,7 @@ export default function DayOptimizer() {
                 <div className="text-center pb-2 border-b border-border">
                   <div className="font-display text-2xl text-foreground">Day Optimizer Report</div>
                   <div className="text-xs font-body text-muted-foreground">
-                    {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h
+                    {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h · {WEATHER_LABELS[weather]}
                   </div>
                 </div>
                 {/* Summary */}
@@ -475,7 +535,42 @@ export default function DayOptimizer() {
                     {difficulty.label}
                   </div>
                 </div>
+                {weatherBump > 0 && (
+                  <div className="border-t border-border pt-3 text-xs font-body text-muted-foreground text-center">
+                    Includes <span className="font-semibold text-foreground">+{weatherBump}</span> from{" "}
+                    {WEATHER_LABELS[weather].toLowerCase()} of rain
+                    ({weatherSensitiveRides.length} weather-sensitive ride{weatherSensitiveRides.length !== 1 ? "s" : ""})
+                  </div>
+                )}
               </div>
+
+              {/* Weather impact */}
+              {weather !== "none" && weatherSensitiveRides.length > 0 && (
+                <div className="bg-card rounded-lg border border-border overflow-hidden">
+                  <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                    <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                      <CloudRain className="w-4 h-4 text-secondary" strokeWidth={2} />
+                      Weather Impact
+                    </h3>
+                    <p className="text-xs font-body text-muted-foreground mt-0.5">
+                      {WEATHER_LABELS[weather]} of rain · ~{Math.round(WEATHER_SHUTDOWN_CHANCE[weather] * 100)}% shutdown risk per ride below
+                    </p>
+                  </div>
+                  <div className="divide-y divide-border">
+                    {weatherSensitiveRides.map((r) => (
+                      <div key={`weather-${r.slot}-${r.rideId}`} className="px-4 py-2 flex items-center gap-2 text-sm font-body">
+                        <CloudRain className="w-3.5 h-3.5 text-muted-foreground shrink-0" strokeWidth={2} />
+                        <div className="flex-1 min-w-0">
+                          <div className="font-semibold text-foreground truncate">{r.rideName}</div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {r.parkArea} · {SLOT_LABELS[r.slot]}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Per-slot summary */}
               <div className="bg-card rounded-lg border border-border overflow-hidden">
