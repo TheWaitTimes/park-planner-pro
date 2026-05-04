@@ -511,7 +511,11 @@ export default function DayOptimizer() {
                 <div className="text-center pb-2 border-b border-border">
                   <div className="font-display text-2xl text-foreground">Day Optimizer Report</div>
                   <div className="text-xs font-body text-muted-foreground">
-                    {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h · {WEATHER_LABELS[weather]}
+                    {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h
+                  </div>
+                  <div className="text-xs font-body text-muted-foreground mt-1 inline-flex items-center gap-1.5 justify-center">
+                    <CloudRain className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
+                    <span>Expected Weather: <span className="font-semibold text-foreground">{WEATHER_LABELS[weather]}{weather !== "none" ? " of Rain" : ""}</span></span>
                   </div>
                 </div>
                 {/* Summary */}
