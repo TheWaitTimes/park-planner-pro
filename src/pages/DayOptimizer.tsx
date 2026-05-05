@@ -159,6 +159,7 @@ export default function DayOptimizer() {
   const captureSections = useCallback(async () => {
     const node = reportRef.current;
     if (!node) return [];
+    await document.fonts.ready;
     const sections = Array.from(
       node.querySelectorAll<HTMLElement>("[data-pdf-section]")
     );
@@ -169,6 +170,54 @@ export default function DayOptimizer() {
         backgroundColor: bg,
         scale: 2,
         useCORS: true,
+        foreignObjectRendering: true,
+        onclone: (clonedDoc) => {
+          document.fonts.forEach((font) => {
+            try {
+              clonedDoc.fonts.add(font);
+            } catch {
+              // Ignore fonts the cloned document cannot re-register.
+            }
+          });
+
+          const style = clonedDoc.createElement("style");
+          style.textContent = `
+            [data-pdf-section] {
+              padding-top: 3px !important;
+              padding-bottom: 3px !important;
+              overflow: visible !important;
+            }
+
+            [data-pdf-section],
+            [data-pdf-section] * {
+              -webkit-font-smoothing: antialiased;
+              text-rendering: geometricPrecision;
+            }
+
+            [data-pdf-section] [data-export-row] {
+              padding-top: 0.75rem !important;
+              padding-bottom: 0.75rem !important;
+              align-items: flex-start !important;
+            }
+
+            [data-pdf-section] [data-export-text] {
+              padding-top: 0.2rem !important;
+              padding-bottom: 0.2rem !important;
+              overflow: visible !important;
+            }
+
+            [data-pdf-section] [data-export-title],
+            [data-pdf-section] [data-export-subtitle],
+            [data-pdf-section] [data-export-label] {
+              display: block !important;
+              white-space: normal !important;
+              overflow: visible !important;
+              text-overflow: clip !important;
+              line-height: 1.35 !important;
+            }
+          `;
+          clonedDoc.head.appendChild(style);
+        },
       });
       canvases.push(c);
     }
@@ -602,11 +651,11 @@ export default function DayOptimizer() {
                   </div>
                   <div className="divide-y divide-border">
                     {weatherSensitiveRides.map((r) => (
-                      <div key={`weather-${r.slot}-${r.rideId}`} className="px-4 py-2 flex items-center gap-2 text-sm font-body">
-                        <CloudRain className="w-3.5 h-3.5 text-muted-foreground shrink-0" strokeWidth={2} />
-                        <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-foreground truncate">{r.rideName}</div>
-                          <div className="text-xs text-muted-foreground truncate">
+                      <div key={`weather-${r.slot}-${r.rideId}`} data-export-row className="px-4 py-3 flex items-start gap-2 text-sm font-body">
+                        <CloudRain className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-1" strokeWidth={2} />
+                        <div data-export-text className="flex-1 min-w-0">
+                          <div data-export-title className="font-semibold text-foreground leading-snug break-words">{r.rideName}</div>
+                          <div data-export-subtitle className="text-xs text-muted-foreground leading-snug break-words mt-0.5">
                             {r.parkArea} · {SLOT_LABELS[r.slot]}
                           </div>
                         </div>
@@ -805,10 +854,10 @@ export default function DayOptimizer() {
                     </div>
                     <div className="divide-y divide-border">
                       {rows.map((r) => (
-                        <div key={`${slot}-${r.rideId}`} className="px-4 py-2 flex items-center gap-2 text-sm font-body">
-                          <div className="flex-1 min-w-0">
-                            <div className="font-semibold text-foreground truncate">{r.rideName}</div>
-                            <div className="text-xs text-muted-foreground truncate">
+                        <div key={`${slot}-${r.rideId}`} data-export-row className="px-4 py-3 flex items-start gap-2 text-sm font-body">
+                          <div data-export-text className="flex-1 min-w-0">
+                            <div data-export-title className="font-semibold text-foreground leading-snug break-words">{r.rideName}</div>
+                            <div data-export-subtitle className="text-xs text-muted-foreground leading-snug break-words mt-0.5">
                               {r.parkArea}{slot === "hop" ? ` · ${r.parkName}` : ""}
                             </div>
                           </div>
