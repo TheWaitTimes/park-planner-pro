@@ -661,7 +661,7 @@ export default function DayOptimizer() {
                 }));
                 const maxTotal = Math.max(1, ...slotTotals.map((s) => s.total));
                 return (
-                  <div className="bg-card rounded-lg border border-border overflow-hidden">
+                  <div data-pdf-section className="bg-card rounded-lg border border-border overflow-hidden">
                     <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
                       <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
                         <TrendingUp className="w-4 h-4 text-secondary" strokeWidth={2} />
