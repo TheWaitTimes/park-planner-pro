@@ -156,58 +156,98 @@ export default function DayOptimizer() {
   const [exporting, setExporting] = useState<null | "png" | "pdf">(null);
   const reportRef = useRef<HTMLDivElement>(null);
 
-  const captureReport = useCallback(async () => {
+  const captureSections = useCallback(async () => {
     const node = reportRef.current;
-    if (!node) return null;
+    if (!node) return [];
+    const sections = Array.from(
+      node.querySelectorAll<HTMLElement>("[data-pdf-section]")
+    );
     const bg = getComputedStyle(document.body).backgroundColor || "#ffffff";
-    return await html2canvas(node, {
-      backgroundColor: bg,
-      scale: 2,
-      useCORS: true,
-    });
+    const canvases: HTMLCanvasElement[] = [];
+    for (const section of sections) {
+      const c = await html2canvas(section, {
+        backgroundColor: bg,
+        scale: 2,
+        useCORS: true,
+      });
+      canvases.push(c);
+    }
+    return canvases;
   }, []);
 
   const downloadPNG = useCallback(async () => {
     setExporting("png");
     try {
-      const canvas = await captureReport();
-      if (!canvas) return;
+      const canvases = await captureSections();
+      if (canvases.length === 0) return;
+      const gap = 24; // px between sections (at scale 2 ≈ 12 CSS px)
+      const width = Math.max(...canvases.map((c) => c.width));
+      const totalHeight =
+        canvases.reduce((s, c) => s + c.height, 0) + gap * (canvases.length - 1);
+      const out = document.createElement("canvas");
+      out.width = width;
+      out.height = totalHeight;
+      const ctx = out.getContext("2d");
+      if (!ctx) return;
+      const bg = getComputedStyle(document.body).backgroundColor || "#ffffff";
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, out.width, out.height);
+      let y = 0;
+      for (const c of canvases) {
+        const x = Math.floor((width - c.width) / 2);
+        ctx.drawImage(c, x, y);
+        y += c.height + gap;
+      }
       const link = document.createElement("a");
       link.download = `day-optimizer-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.png`;
-      link.href = canvas.toDataURL("image/png");
+      link.href = out.toDataURL("image/png");
       link.click();
     } finally {
       setExporting(null);
     }
-  }, [captureReport, primaryPark]);
+  }, [captureSections, primaryPark]);
 
   const downloadPDF = useCallback(async () => {
     setExporting("pdf");
     try {
-      const canvas = await captureReport();
-      if (!canvas) return;
-      const imgData = canvas.toDataURL("image/png");
+      const canvases = await captureSections();
+      if (canvases.length === 0) return;
       const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
       const margin = 24;
-      const imgW = pageW - margin * 2;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      let heightLeft = imgH;
-      let position = margin;
-      pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
-      heightLeft -= pageH - margin * 2;
-      while (heightLeft > 0) {
-        position = margin - (imgH - heightLeft);
-        pdf.addPage();
-        pdf.addImage(imgData, "PNG", margin, position, imgW, imgH);
-        heightLeft -= pageH - margin * 2;
+      const contentW = pageW - margin * 2;
+      const contentH = pageH - margin * 2;
+      const gap = 8;
+      let currentY = margin;
+      let firstOnPage = true;
+      for (const canvas of canvases) {
+        const imgW = contentW;
+        let imgH = (canvas.height * imgW) / canvas.width;
+        // If a single section is taller than a page, scale it down to fit one page.
+        if (imgH > contentH) {
+          imgH = contentH;
+        }
+        const remaining = pageH - margin - currentY;
+        if (!firstOnPage && imgH > remaining) {
+          pdf.addPage();
+          currentY = margin;
+          firstOnPage = true;
+        }
+        const imgData = canvas.toDataURL("image/png");
+        const drawW = (canvas.width * imgH) / canvas.height;
+        const drawW2 = Math.min(drawW, contentW);
+        const drawH2 = (canvas.height * drawW2) / canvas.width;
+        const xOffset = margin + (contentW - drawW2) / 2;
+        pdf.addImage(imgData, "PNG", xOffset, currentY, drawW2, drawH2);
+        currentY += drawH2 + gap;
+        firstOnPage = false;
       }
       pdf.save(`day-optimizer-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.pdf`);
     } finally {
       setExporting(null);
     }
-  }, [captureReport, primaryPark]);
+  }, [captureSections, primaryPark]);
 
   const primaryRides = PARKS[primaryPark]?.rides ?? [];
   const hopRides = PARKS[hopPark]?.rides ?? [];
