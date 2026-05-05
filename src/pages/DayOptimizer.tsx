@@ -210,10 +210,13 @@ export default function DayOptimizer() {
             [data-pdf-section] [data-export-subtitle],
             [data-pdf-section] [data-export-label] {
               display: block !important;
+              font-family: 'DM Sans', system-ui, sans-serif !important;
               white-space: normal !important;
               overflow: visible !important;
               text-overflow: clip !important;
-              line-height: 1.35 !important;
+              line-height: 1.45 !important;
+              padding-top: 0.12rem !important;
+              padding-bottom: 0.12rem !important;
             }
           `;
           clonedDoc.head.appendChild(style);
@@ -680,13 +683,13 @@ export default function DayOptimizer() {
                     const total = rows.reduce((s, r) => s + r.expectedWait, 0);
                     const avg = count > 0 ? Math.round(total / count) : 0;
                     return (
-                      <div key={`sum-${slot}`} className="px-4 py-2 flex items-center gap-2 text-sm font-body">
+                      <div key={`sum-${slot}`} data-export-row className="px-4 py-3 flex items-start gap-2 text-sm font-body">
                         <div className="flex-1 min-w-0">
-                          <div className="font-semibold text-foreground truncate inline-flex items-center gap-2">
+                          <div data-export-label className="font-semibold text-foreground leading-snug break-words inline-flex items-start gap-2">
                             {(() => { const I = SLOT_ICONS[slot]; return <I className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />; })()}
                             {SLOT_LABELS[slot]}
                           </div>
-                          <div className="text-xs text-muted-foreground">
+                          <div data-export-subtitle className="text-xs text-muted-foreground leading-snug mt-0.5">
                             {count} ride{count !== 1 ? "s" : ""}
                           </div>
                         </div>
@@ -819,13 +822,13 @@ export default function DayOptimizer() {
                                 {rows.map((r, i) => (
                                   <div
                                     key={`leg-${slot}-${r.rideId}`}
-                                    className="flex items-center gap-1.5 text-[11px] font-body text-muted-foreground"
+                                    className="flex items-start gap-1.5 text-[11px] font-body text-muted-foreground"
                                   >
                                     <span
-                                      className="inline-block w-2.5 h-2.5 rounded-sm shrink-0"
+                                      className="inline-block w-2.5 h-2.5 rounded-sm shrink-0 mt-1"
                                       style={{ backgroundColor: SEGMENT_COLORS[i % SEGMENT_COLORS.length] }}
                                     />
-                                    <span className="truncate max-w-[140px]">{r.rideName}</span>
+                                    <span data-export-label className="max-w-[140px] leading-snug break-words">{r.rideName}</span>
                                     <span className="text-foreground font-semibold">{r.expectedWait}m</span>
                                   </div>
                                 ))}
