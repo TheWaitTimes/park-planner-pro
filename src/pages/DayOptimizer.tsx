@@ -559,7 +559,7 @@ export default function DayOptimizer() {
                   </div>
                 </div>
                 {/* Summary */}
-                <div className="bg-card rounded-lg border border-border p-4 space-y-3">
+                <div data-pdf-section className="bg-card rounded-lg border border-border p-4 space-y-3">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="text-center">
                     <div className="text-xs font-body text-muted-foreground">Total Rides</div>
