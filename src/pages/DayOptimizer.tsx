@@ -548,7 +548,7 @@ export default function DayOptimizer() {
               </div>
 
               <div ref={reportRef} className="space-y-4 bg-background p-3 rounded-lg">
-                <div className="text-center pb-2 border-b border-border">
+                <div data-pdf-section className="text-center pb-2 border-b border-border">
                   <div className="font-display text-2xl text-foreground">Day Optimizer Report</div>
                   <div className="text-xs font-body text-muted-foreground">
                     {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h
