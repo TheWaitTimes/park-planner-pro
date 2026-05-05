@@ -590,7 +590,7 @@ export default function DayOptimizer() {
 
               {/* Weather impact */}
               {weather !== "none" && weatherSensitiveRides.length > 0 && (
-                <div className="bg-card rounded-lg border border-border overflow-hidden">
+                <div data-pdf-section className="bg-card rounded-lg border border-border overflow-hidden">
                   <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
                     <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
                       <CloudRain className="w-4 h-4 text-secondary" strokeWidth={2} />
@@ -617,7 +617,7 @@ export default function DayOptimizer() {
               )}
 
               {/* Per-slot summary */}
-              <div className="bg-card rounded-lg border border-border overflow-hidden">
+              <div data-pdf-section className="bg-card rounded-lg border border-border overflow-hidden">
                 <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
                   <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
                     <BarChart3 className="w-4 h-4 text-secondary" strokeWidth={2} />
