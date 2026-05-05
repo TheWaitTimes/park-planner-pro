@@ -140,6 +140,9 @@ export default function DaySimulator() {
         ? `${formatTime(firstStart)} – ${formatTime(lastEnd)}`
         : "—";
 
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+
     // ---------- COVER PAGE ----------
     let cy = 60;
     doc.setFontSize(28);
@@ -156,13 +159,19 @@ export default function DaySimulator() {
     cy += 14;
 
     const label = (l: string, v: string) => {
+      const labelText = l.toUpperCase();
       doc.setFontSize(11);
       doc.setTextColor(120);
-      doc.text(l.toUpperCase(), 40, cy);
-      doc.setFontSize(14);
+      doc.text(labelText, 40, cy);
+      // Reserve space for the label so the value can wrap if it's long.
+      doc.setFontSize(13);
       doc.setTextColor(30);
-      doc.text(v, pageWidth - 40, cy, { align: "right" });
-      cy += 12;
+      const labelWidth = doc.getTextWidth(labelText);
+      const valueMaxWidth = pageWidth - 40 - (40 + labelWidth + 8);
+      const lines = doc.splitTextToSize(v, Math.max(40, valueMaxWidth));
+      doc.text(lines, pageWidth - 40, cy, { align: "right" });
+      const lineHeight = 6;
+      cy += Math.max(12, lines.length * lineHeight + 4);
     };
 
     label("Parks Visited", state.selectedParks.join(" → ") || "—");
@@ -188,22 +197,28 @@ export default function DaySimulator() {
     doc.text("Activity Timeline", pageWidth / 2, y, { align: "center" });
     y += 12;
 
+    const lineHeight = 5;
+    const bottomLimit = pageHeight - 20;
+
     Object.entries(grouped).forEach(([park, rides]) => {
-      if (y > 270) { doc.addPage(); y = 20; }
+      if (y > bottomLimit - 20) { doc.addPage(); y = 20; }
       doc.setFontSize(14);
       doc.setTextColor(30, 60, 120);
-      doc.text(park, 14, y);
+      doc.text(park, margin, y);
       y += 7;
       doc.setFontSize(10);
       doc.setTextColor(40);
       rides.forEach((ride) => {
-        if (y > 280) { doc.addPage(); y = 20; }
         const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
         const totalMin = ride.waitTime + ride.onRideTime;
         const detail = isAction ? `${totalMin} min` : `${ride.waitTime}m wait · ${ride.onRideTime}m ride`;
         const time = `${formatTime(ride.timeStarted)} – ${formatTime(ride.timeFinished)}`;
-        doc.text(`${time}  ${ride.rideName}  (${detail})`, 18, y);
-        y += 6;
+        const text = `${time}  ${ride.rideName}  (${detail})`;
+        const lines = doc.splitTextToSize(text, contentWidth - 4);
+        const blockHeight = lines.length * lineHeight;
+        if (y + blockHeight > bottomLimit) { doc.addPage(); y = 20; }
+        doc.text(lines, margin + 4, y);
+        y += blockHeight + 1;
       });
       y += 4;
     });
