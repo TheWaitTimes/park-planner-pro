@@ -715,7 +715,7 @@ export default function DayOptimizer() {
                 const hasAny = slotData.some((s) => s.rows.length > 0);
                 if (!hasAny) return null;
                 return (
-                  <div className="bg-card rounded-lg border border-border overflow-hidden">
+                  <div data-pdf-section className="bg-card rounded-lg border border-border overflow-hidden">
                     <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
                       <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
                         <Layers className="w-4 h-4 text-secondary" strokeWidth={2} />
@@ -796,7 +796,7 @@ export default function DayOptimizer() {
                 if (rows.length === 0) return null;
                 const I = SLOT_ICONS[slot];
                 return (
-                  <div key={slot} className="bg-card rounded-lg border border-border overflow-hidden">
+                  <div data-pdf-section key={slot} className="bg-card rounded-lg border border-border overflow-hidden">
                     <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
                       <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
                         <I className="w-4 h-4 text-secondary" strokeWidth={2} />
