@@ -170,7 +170,7 @@ export default function DayOptimizer() {
         backgroundColor: bg,
         scale: 2,
         useCORS: true,
-        foreignObjectRendering: true,
+        logging: false,
         onclone: (clonedDoc) => {
           document.fonts.forEach((font) => {
             try {
