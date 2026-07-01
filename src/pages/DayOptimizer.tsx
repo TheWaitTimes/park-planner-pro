@@ -671,6 +671,12 @@ export default function DayOptimizer() {
                             {r.parkArea} · {SLOT_LABELS[r.slot]}
                           </div>
                         </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-display text-secondary text-sm">
+                            {Math.round(r.shutdownChance * 100)}%
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">shutdown risk</div>
+                        </div>
                       </div>
                     ))}
                   </div>
