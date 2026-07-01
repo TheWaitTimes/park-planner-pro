@@ -619,6 +619,11 @@ export default function DayOptimizer() {
                   <div className="text-center">
                     <div className="text-xs font-body text-muted-foreground">Total Rides</div>
                     <div className="text-3xl font-display text-secondary">{totalRides}</div>
+                    {expectedShutdowns > 0 && (
+                      <div className="text-[11px] font-body text-muted-foreground mt-0.5">
+                        ~{expectedCompleted.toFixed(1)} expected to run
+                      </div>
+                    )}
                   </div>
                   <div className="text-center">
                     <div className="text-xs font-body text-muted-foreground">Est. Wait</div>
@@ -638,7 +643,8 @@ export default function DayOptimizer() {
                   <div className="border-t border-border pt-3 text-xs font-body text-muted-foreground text-center">
                     Includes <span className="font-semibold text-foreground">+{weatherBump}</span> from{" "}
                     {WEATHER_LABELS[weather].toLowerCase()} of rain
-                    ({weatherSensitiveRides.length} weather-sensitive ride{weatherSensitiveRides.length !== 1 ? "s" : ""})
+                    ({weatherSensitiveRides.length} weather-sensitive ride{weatherSensitiveRides.length !== 1 ? "s" : ""},
+                    ~{expectedShutdowns.toFixed(1)} may not run)
                   </div>
                 )}
               </div>
