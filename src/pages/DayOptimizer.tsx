@@ -323,6 +323,7 @@ export default function DayOptimizer() {
 
   const runReport = useCallback(() => {
     const rows: ReportRow[] = [];
+    const shutdown = WEATHER_SHUTDOWN_CHANCE[weather];
     for (const slot of SLOT_ORDER) {
       for (const planned of plan[slot]) {
         const parkRides = PARKS[planned.parkName]?.rides ?? [];
@@ -336,26 +337,30 @@ export default function DayOptimizer() {
           slot,
           expectedWait: computeExpectedWait(ride, slot, month, crowd),
           onRideTime: ride.onRideTime,
+          shutdownChance: ride.weatherEffect === 1 ? shutdown : 0,
         });
       }
     }
     setReport(rows);
-  }, [plan, month, crowd]);
+  }, [plan, month, crowd, weather]);
 
   const totalRides = report?.length ?? 0;
   const totalWait = report?.reduce((s, r) => s + r.expectedWait, 0) ?? 0;
-  const totalRideTime = report?.reduce((s, r) => s + r.expectedWait + r.onRideTime + 5, 0) ?? 0;
+  // Effective ride time discounts wait/ride minutes by shutdown probability —
+  // rides that may not run contribute less to the day's committed time budget.
+  const totalRideTime = report?.reduce(
+    (s, r) => s + (r.expectedWait + r.onRideTime + 5) * (1 - r.shutdownChance),
+    0,
+  ) ?? 0;
   const hopUsed = (report?.filter((r) => r.slot === "hop").length ?? 0) > 0;
   const weatherSensitiveRides = useMemo(() => {
     if (!report) return [];
-    return report.filter((r) => {
-      const ride = PARKS[r.parkName]?.rides.find((rr) => rr.id === r.rideId);
-      return ride?.weatherEffect === 1;
-    });
+    return report.filter((r) => r.shutdownChance > 0);
   }, [report]);
-  const weatherBump = weather === "none" || weatherSensitiveRides.length === 0
-    ? 0
-    : WEATHER_DIFFICULTY_BUMP[weather];
+  const expectedShutdowns = weatherSensitiveRides.reduce((s, r) => s + r.shutdownChance, 0);
+  const expectedCompleted = Math.max(0, totalRides - expectedShutdowns);
+  // Difficulty bump scales with total expected shutdowns (capped at 3).
+  const weatherBump = Math.min(3, Math.round(expectedShutdowns));
   const difficulty = report ? computeDifficulty(totalRideTime, hours, hopUsed, weatherBump) : null;
 
   const groupedReport = useMemo(() => {
