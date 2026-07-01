@@ -17,13 +17,9 @@ const WEATHER_LABELS: Record<Weather, string> = {
   high: "High Chance",
 };
 
-// Difficulty bump applied when weather-sensitive rides are in the plan
-const WEATHER_DIFFICULTY_BUMP: Record<Weather, number> = {
-  none: 0,
-  low: 1,
-  medium: 2,
-  high: 3,
-};
+// Probability a weather-sensitive ride shuts down at each weather level —
+// used both to flag rides in the report and to discount their contribution
+// to the difficulty score.
 
 // Probability a weather-sensitive ride shuts down at each level
 const WEATHER_SHUTDOWN_CHANCE: Record<Weather, number> = {
