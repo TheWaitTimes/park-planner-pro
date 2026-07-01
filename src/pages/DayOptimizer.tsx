@@ -100,6 +100,7 @@ interface ReportRow {
   slot: Slot;
   expectedWait: number;
   onRideTime: number;
+  shutdownChance: number; // 0..1 probability the ride may not run due to weather
 }
 
 function baseWait(ride: Ride, slot: Slot): number {
