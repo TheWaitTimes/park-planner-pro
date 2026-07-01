@@ -4,6 +4,7 @@ import jsPDF from "jspdf";
 import {
   Sun, CloudSun, Moon, Shuffle, Castle, Globe, Clapperboard, Trees,
   BarChart3, TrendingUp, Layers, Play, Download, Ticket, CloudRain,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 
