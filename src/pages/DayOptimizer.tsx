@@ -4,6 +4,7 @@ import jsPDF from "jspdf";
 import {
   Sun, CloudSun, Moon, Shuffle, Castle, Globe, Clapperboard, Trees,
   BarChart3, TrendingUp, Layers, Play, Download, Ticket, CloudRain,
+  AlertTriangle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -16,13 +17,9 @@ const WEATHER_LABELS: Record<Weather, string> = {
   high: "High Chance",
 };
 
-// Difficulty bump applied when weather-sensitive rides are in the plan
-const WEATHER_DIFFICULTY_BUMP: Record<Weather, number> = {
-  none: 0,
-  low: 1,
-  medium: 2,
-  high: 3,
-};
+// Probability a weather-sensitive ride shuts down at each weather level —
+// used both to flag rides in the report and to discount their contribution
+// to the difficulty score.
 
 // Probability a weather-sensitive ride shuts down at each level
 const WEATHER_SHUTDOWN_CHANCE: Record<Weather, number> = {
@@ -99,6 +96,7 @@ interface ReportRow {
   slot: Slot;
   expectedWait: number;
   onRideTime: number;
+  shutdownChance: number; // 0..1 probability the ride may not run due to weather
 }
 
 function baseWait(ride: Ride, slot: Slot): number {
@@ -321,6 +319,7 @@ export default function DayOptimizer() {
 
   const runReport = useCallback(() => {
     const rows: ReportRow[] = [];
+    const shutdown = WEATHER_SHUTDOWN_CHANCE[weather];
     for (const slot of SLOT_ORDER) {
       for (const planned of plan[slot]) {
         const parkRides = PARKS[planned.parkName]?.rides ?? [];
@@ -334,26 +333,30 @@ export default function DayOptimizer() {
           slot,
           expectedWait: computeExpectedWait(ride, slot, month, crowd),
           onRideTime: ride.onRideTime,
+          shutdownChance: ride.weatherEffect === 1 ? shutdown : 0,
         });
       }
     }
     setReport(rows);
-  }, [plan, month, crowd]);
+  }, [plan, month, crowd, weather]);
 
   const totalRides = report?.length ?? 0;
   const totalWait = report?.reduce((s, r) => s + r.expectedWait, 0) ?? 0;
-  const totalRideTime = report?.reduce((s, r) => s + r.expectedWait + r.onRideTime + 5, 0) ?? 0;
+  // Effective ride time discounts wait/ride minutes by shutdown probability —
+  // rides that may not run contribute less to the day's committed time budget.
+  const totalRideTime = report?.reduce(
+    (s, r) => s + (r.expectedWait + r.onRideTime + 5) * (1 - r.shutdownChance),
+    0,
+  ) ?? 0;
   const hopUsed = (report?.filter((r) => r.slot === "hop").length ?? 0) > 0;
   const weatherSensitiveRides = useMemo(() => {
     if (!report) return [];
-    return report.filter((r) => {
-      const ride = PARKS[r.parkName]?.rides.find((rr) => rr.id === r.rideId);
-      return ride?.weatherEffect === 1;
-    });
+    return report.filter((r) => r.shutdownChance > 0);
   }, [report]);
-  const weatherBump = weather === "none" || weatherSensitiveRides.length === 0
-    ? 0
-    : WEATHER_DIFFICULTY_BUMP[weather];
+  const expectedShutdowns = weatherSensitiveRides.reduce((s, r) => s + r.shutdownChance, 0);
+  const expectedCompleted = Math.max(0, totalRides - expectedShutdowns);
+  // Difficulty bump scales with total expected shutdowns (capped at 3).
+  const weatherBump = Math.min(3, Math.round(expectedShutdowns));
   const difficulty = report ? computeDifficulty(totalRideTime, hours, hopUsed, weatherBump) : null;
 
   const groupedReport = useMemo(() => {
@@ -616,6 +619,11 @@ export default function DayOptimizer() {
                   <div className="text-center">
                     <div className="text-xs font-body text-muted-foreground">Total Rides</div>
                     <div className="text-3xl font-display text-secondary">{totalRides}</div>
+                    {expectedShutdowns > 0 && (
+                      <div className="text-[11px] font-body text-muted-foreground mt-0.5">
+                        ~{expectedCompleted.toFixed(1)} expected to run
+                      </div>
+                    )}
                   </div>
                   <div className="text-center">
                     <div className="text-xs font-body text-muted-foreground">Est. Wait</div>
@@ -635,7 +643,8 @@ export default function DayOptimizer() {
                   <div className="border-t border-border pt-3 text-xs font-body text-muted-foreground text-center">
                     Includes <span className="font-semibold text-foreground">+{weatherBump}</span> from{" "}
                     {WEATHER_LABELS[weather].toLowerCase()} of rain
-                    ({weatherSensitiveRides.length} weather-sensitive ride{weatherSensitiveRides.length !== 1 ? "s" : ""})
+                    ({weatherSensitiveRides.length} weather-sensitive ride{weatherSensitiveRides.length !== 1 ? "s" : ""},
+                    ~{expectedShutdowns.toFixed(1)} may not run)
                   </div>
                 )}
               </div>
@@ -661,6 +670,12 @@ export default function DayOptimizer() {
                           <div data-export-subtitle className="text-xs text-muted-foreground leading-snug break-words mt-0.5">
                             {r.parkArea} · {SLOT_LABELS[r.slot]}
                           </div>
+                        </div>
+                        <div className="text-right shrink-0">
+                          <div className="font-display text-secondary text-sm">
+                            {Math.round(r.shutdownChance * 100)}%
+                          </div>
+                          <div className="text-[11px] text-muted-foreground">shutdown risk</div>
                         </div>
                       </div>
                     ))}
@@ -859,7 +874,15 @@ export default function DayOptimizer() {
                       {rows.map((r) => (
                         <div key={`${slot}-${r.rideId}`} data-export-row className="px-4 py-3 flex items-start gap-2 text-sm font-body">
                           <div data-export-text className="flex-1 min-w-0">
-                            <div data-export-title className="font-semibold text-foreground leading-snug break-words">{r.rideName}</div>
+                            <div data-export-title className="font-semibold text-foreground leading-snug break-words inline-flex items-center gap-2 flex-wrap">
+                              {r.rideName}
+                              {r.shutdownChance > 0 && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-body font-semibold uppercase tracking-wide">
+                                  <AlertTriangle className="w-3 h-3" strokeWidth={2.5} />
+                                  May not run · {Math.round(r.shutdownChance * 100)}%
+                                </span>
+                              )}
+                            </div>
                             <div data-export-subtitle className="text-xs text-muted-foreground leading-snug break-words mt-0.5">
                               {r.parkArea}{slot === "hop" ? ` · ${r.parkName}` : ""}
                             </div>
