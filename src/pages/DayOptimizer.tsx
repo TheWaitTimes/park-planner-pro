@@ -874,7 +874,15 @@ export default function DayOptimizer() {
                       {rows.map((r) => (
                         <div key={`${slot}-${r.rideId}`} data-export-row className="px-4 py-3 flex items-start gap-2 text-sm font-body">
                           <div data-export-text className="flex-1 min-w-0">
-                            <div data-export-title className="font-semibold text-foreground leading-snug break-words">{r.rideName}</div>
+                            <div data-export-title className="font-semibold text-foreground leading-snug break-words inline-flex items-center gap-2 flex-wrap">
+                              {r.rideName}
+                              {r.shutdownChance > 0 && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-body font-semibold uppercase tracking-wide">
+                                  <AlertTriangle className="w-3 h-3" strokeWidth={2.5} />
+                                  May not run · {Math.round(r.shutdownChance * 100)}%
+                                </span>
+                              )}
+                            </div>
                             <div data-export-subtitle className="text-xs text-muted-foreground leading-snug break-words mt-0.5">
                               {r.parkArea}{slot === "hop" ? ` · ${r.parkName}` : ""}
                             </div>
