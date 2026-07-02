@@ -547,7 +547,11 @@ export default function DayOptimizer() {
                 {(Object.keys(WEATHER_LABELS) as Weather[]).map((w) => (
                   <button
                     key={w}
-                    onClick={() => { setWeather(w); setReport(null); }}
+                    onClick={() => {
+                      setWeather(w);
+                      setShutdownChance(WEATHER_SHUTDOWN_CHANCE[w]);
+                      setReport(null);
+                    }}
                     className={`py-2 rounded-md text-xs font-body font-semibold transition ${
                       weather === w
                         ? "bg-secondary text-secondary-foreground"
@@ -557,6 +561,25 @@ export default function DayOptimizer() {
                     {WEATHER_LABELS[w]}
                   </button>
                 ))}
+              </div>
+              <div className="mt-3">
+                <div className="flex justify-between items-center text-xs font-body text-foreground">
+                  <span className="font-semibold">Shutdown Chance</span>
+                  <span className="text-secondary font-semibold">{Math.round(shutdownChance * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Math.round(shutdownChance * 100)}
+                  onChange={(e) => setShutdownChance(Number(e.target.value) / 100)}
+                  className="w-full mt-1 accent-secondary"
+                  aria-label="Weather shutdown chance"
+                />
+                <div className="flex justify-between text-[11px] text-muted-foreground font-body">
+                  <span>0%</span><span>100%</span>
+                </div>
               </div>
             </div>
 
