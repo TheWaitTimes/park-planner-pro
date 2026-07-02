@@ -320,7 +320,7 @@ export default function DayOptimizer() {
 
   const runReport = useCallback(() => {
     const rows: ReportRow[] = [];
-    const shutdown = WEATHER_SHUTDOWN_CHANCE[weather];
+    const shutdown = shutdownChance;
     for (const slot of SLOT_ORDER) {
       for (const planned of plan[slot]) {
         const parkRides = PARKS[planned.parkName]?.rides ?? [];
@@ -339,7 +339,13 @@ export default function DayOptimizer() {
       }
     }
     setReport(rows);
-  }, [plan, month, crowd, weather]);
+  }, [plan, month, crowd, shutdownChance]);
+
+  // Instantly re-run whenever the shutdown chance slider moves (if a report exists).
+  useEffect(() => {
+    if (report !== null) runReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shutdownChance]);
 
   const totalRides = report?.length ?? 0;
   const totalWait = report?.reduce((s, r) => s + r.expectedWait, 0) ?? 0;
