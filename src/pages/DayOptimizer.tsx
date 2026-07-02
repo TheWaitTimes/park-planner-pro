@@ -539,49 +539,37 @@ export default function DayOptimizer() {
             </div>
 
             <div>
-              <span className="text-sm font-body font-semibold text-foreground inline-flex items-center gap-1.5">
-                <CloudRain className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
-                Expected Weather
-              </span>
-              <div className="grid grid-cols-2 gap-2 mt-1">
-                {(Object.keys(WEATHER_LABELS) as Weather[]).map((w) => (
-                  <button
-                    key={w}
-                    onClick={() => {
-                      setWeather(w);
-                      setShutdownChance(WEATHER_SHUTDOWN_CHANCE[w]);
-                      setReport(null);
-                    }}
-                    className={`py-2 rounded-md text-xs font-body font-semibold transition ${
-                      weather === w
-                        ? "bg-secondary text-secondary-foreground"
-                        : "bg-muted text-muted-foreground hover:bg-muted/80"
-                    }`}
-                  >
-                    {WEATHER_LABELS[w]}
-                  </button>
-                ))}
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-body font-semibold text-foreground inline-flex items-center gap-1.5">
+                  <CloudRain className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
+                  Expected Weather
+                </span>
+                <span className="text-xs font-body font-semibold text-secondary">
+                  {WEATHER_LABELS[weather]} · {Math.round(shutdownChance * 100)}%
+                </span>
               </div>
-              <div className="mt-3">
-                <div className="flex justify-between items-center text-xs font-body text-foreground">
-                  <span className="font-semibold">Shutdown Chance</span>
-                  <span className="text-secondary font-semibold">{Math.round(shutdownChance * 100)}%</span>
-                </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={1}
-                  value={Math.round(shutdownChance * 100)}
-                  onChange={(e) => setShutdownChance(Number(e.target.value) / 100)}
-                  className="w-full mt-1 accent-secondary"
-                  aria-label="Weather shutdown chance"
-                />
-                <div className="flex justify-between text-[11px] text-muted-foreground font-body">
-                  <span>0%</span><span>100%</span>
-                </div>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                step={1}
+                value={Math.round(shutdownChance * 100)}
+                onChange={(e) => {
+                  const pct = Number(e.target.value);
+                  const chance = pct / 100;
+                  setShutdownChance(chance);
+                  const w: Weather =
+                    pct === 0 ? "none" : pct <= 25 ? "low" : pct <= 55 ? "medium" : "high";
+                  setWeather(w);
+                }}
+                className="w-full mt-2 accent-secondary"
+                aria-label="Expected weather shutdown chance"
+              />
+              <div className="flex justify-between text-[11px] text-muted-foreground font-body mt-1">
+                <span>No Rain</span><span>High Chance</span>
               </div>
             </div>
+
 
             <label className="block">
               <span className="text-sm font-body font-semibold text-foreground">
