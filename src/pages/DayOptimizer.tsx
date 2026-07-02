@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import {
@@ -148,6 +148,7 @@ export default function DayOptimizer() {
   const [month, setMonth] = useState("October");
   const [crowd, setCrowd] = useState<keyof typeof CROWD_MULTIPLIER>("Moderate");
   const [weather, setWeather] = useState<Weather>("none");
+  const [shutdownChance, setShutdownChance] = useState<number>(WEATHER_SHUTDOWN_CHANCE.none);
   const [hours, setHours] = useState(10);
   const [plan, setPlan] = useState<Plan>({ morning: [], afternoon: [], night: [], hop: [] });
   const [report, setReport] = useState<ReportRow[] | null>(null);
@@ -319,7 +320,7 @@ export default function DayOptimizer() {
 
   const runReport = useCallback(() => {
     const rows: ReportRow[] = [];
-    const shutdown = WEATHER_SHUTDOWN_CHANCE[weather];
+    const shutdown = shutdownChance;
     for (const slot of SLOT_ORDER) {
       for (const planned of plan[slot]) {
         const parkRides = PARKS[planned.parkName]?.rides ?? [];
@@ -338,7 +339,13 @@ export default function DayOptimizer() {
       }
     }
     setReport(rows);
-  }, [plan, month, crowd, weather]);
+  }, [plan, month, crowd, shutdownChance]);
+
+  // Instantly re-run whenever the shutdown chance slider moves (if a report exists).
+  useEffect(() => {
+    if (report !== null) runReport();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shutdownChance]);
 
   const totalRides = report?.length ?? 0;
   const totalWait = report?.reduce((s, r) => s + r.expectedWait, 0) ?? 0;
@@ -540,7 +547,11 @@ export default function DayOptimizer() {
                 {(Object.keys(WEATHER_LABELS) as Weather[]).map((w) => (
                   <button
                     key={w}
-                    onClick={() => { setWeather(w); setReport(null); }}
+                    onClick={() => {
+                      setWeather(w);
+                      setShutdownChance(WEATHER_SHUTDOWN_CHANCE[w]);
+                      setReport(null);
+                    }}
                     className={`py-2 rounded-md text-xs font-body font-semibold transition ${
                       weather === w
                         ? "bg-secondary text-secondary-foreground"
@@ -550,6 +561,25 @@ export default function DayOptimizer() {
                     {WEATHER_LABELS[w]}
                   </button>
                 ))}
+              </div>
+              <div className="mt-3">
+                <div className="flex justify-between items-center text-xs font-body text-foreground">
+                  <span className="font-semibold">Shutdown Chance</span>
+                  <span className="text-secondary font-semibold">{Math.round(shutdownChance * 100)}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={1}
+                  value={Math.round(shutdownChance * 100)}
+                  onChange={(e) => setShutdownChance(Number(e.target.value) / 100)}
+                  className="w-full mt-1 accent-secondary"
+                  aria-label="Weather shutdown chance"
+                />
+                <div className="flex justify-between text-[11px] text-muted-foreground font-body">
+                  <span>0%</span><span>100%</span>
+                </div>
               </div>
             </div>
 
@@ -658,7 +688,7 @@ export default function DayOptimizer() {
                       Weather Impact
                     </h3>
                     <p className="text-xs font-body text-muted-foreground mt-0.5">
-                      {WEATHER_LABELS[weather]} of rain · ~{Math.round(WEATHER_SHUTDOWN_CHANCE[weather] * 100)}% shutdown risk per ride below
+                      {WEATHER_LABELS[weather]} of rain · ~{Math.round(shutdownChance * 100)}% shutdown risk per ride below
                     </p>
                   </div>
                   <div className="divide-y divide-border">
