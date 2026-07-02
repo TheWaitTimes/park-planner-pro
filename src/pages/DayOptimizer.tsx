@@ -4,9 +4,10 @@ import jsPDF from "jspdf";
 import {
   Sun, CloudSun, Moon, Shuffle, Castle, Globe, Clapperboard, Trees,
   BarChart3, TrendingUp, Layers, Play, Download, Ticket, CloudRain,
-  AlertTriangle,
+  AlertTriangle, Info,
   type LucideIcon,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 type Weather = "none" | "low" | "medium" | "high";
 
