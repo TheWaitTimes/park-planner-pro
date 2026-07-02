@@ -544,6 +544,33 @@ export default function DayOptimizer() {
                 <span className="text-sm font-body font-semibold text-foreground inline-flex items-center gap-1.5">
                   <CloudRain className="w-3.5 h-3.5 text-secondary" strokeWidth={2} />
                   Expected Weather
+                  <TooltipProvider delayDuration={150}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="How this slider works"
+                          className="text-muted-foreground hover:text-foreground transition"
+                        >
+                          <Info className="w-3.5 h-3.5" strokeWidth={2} />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="left" className="max-w-xs text-xs font-body leading-relaxed">
+                        <p className="font-semibold mb-1">How this slider works</p>
+                        <p className="mb-2">
+                          The percentage is the chance each weather-sensitive ride
+                          shuts down during your visit. Higher values discount those
+                          rides in the difficulty score.
+                        </p>
+                        <ul className="space-y-0.5">
+                          <li><span className="font-semibold">0%</span> — No Rain</li>
+                          <li><span className="font-semibold">1–25%</span> — Low Chance</li>
+                          <li><span className="font-semibold">26–55%</span> — Medium Chance</li>
+                          <li><span className="font-semibold">56–100%</span> — High Chance</li>
+                        </ul>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </span>
                 <span className="text-xs font-body font-semibold text-secondary">
                   {WEATHER_LABELS[weather]} · {Math.round(shutdownChance * 100)}%
