@@ -688,7 +688,7 @@ export default function DayOptimizer() {
                       Weather Impact
                     </h3>
                     <p className="text-xs font-body text-muted-foreground mt-0.5">
-                      {WEATHER_LABELS[weather]} of rain · ~{Math.round(WEATHER_SHUTDOWN_CHANCE[weather] * 100)}% shutdown risk per ride below
+                      {WEATHER_LABELS[weather]} of rain · ~{Math.round(shutdownChance * 100)}% shutdown risk per ride below
                     </p>
                   </div>
                   <div className="divide-y divide-border">
