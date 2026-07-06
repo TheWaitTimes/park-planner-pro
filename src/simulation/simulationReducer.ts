@@ -13,12 +13,14 @@ export interface SimulationState {
 export interface CompletedRide {
   rideId: string;
   rideName: string;
+  parkArea?: string;
   waitTime: number;
   onRideTime: number;
   walkingTime: number;
   timeStarted: Date;
   timeFinished: Date;
   park: string;
+  visitIndex: number;
 }
 
 export type SimulationAction =
