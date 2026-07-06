@@ -298,8 +298,8 @@ export default function DaySimulator() {
         </div>
 
         <h2 className="text-3xl text-foreground mb-4">Timeline</h2>
-        {Object.entries(grouped).map(([park, rides]) => (
-          <div key={park} className="mb-6">
+        {groupedVisits.map(({ key, park, rides }) => (
+          <div key={key} className="mb-6">
             <h3 className="text-2xl text-secondary mb-2">{park}</h3>
             <div className="space-y-1">
               {rides.map((ride, i) => {
