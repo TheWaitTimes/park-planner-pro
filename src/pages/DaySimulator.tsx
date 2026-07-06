@@ -626,52 +626,73 @@ export default function DaySimulator() {
             <p className="text-sm font-body text-muted-foreground mb-4">
               Ready to ride this attraction?
             </p>
-            <div className="bg-secondary/5 border border-secondary/30 rounded-lg p-4 mb-5">
-              <div className="text-xs font-body text-muted-foreground uppercase tracking-wide mb-1">
-                {pendingRide.parkArea}
-              </div>
-              <div className="font-display text-lg text-foreground mb-3">{pendingRide.name}</div>
-              <div className="flex justify-between text-sm font-body">
-                <span className="text-muted-foreground">Wait Time</span>
-                <span className="font-semibold text-foreground">{pendingRide.waitTime} min</span>
-              </div>
-              <div className="flex justify-between text-sm font-body">
-                <span className="text-muted-foreground">Ride Time</span>
-                <span className="font-semibold text-foreground">{pendingRide.onRideTime} min</span>
-              </div>
-              <div className="border-t border-border mt-2 pt-2 flex justify-between text-sm font-body">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-semibold text-secondary">
-                  {pendingRide.waitTime + pendingRide.onRideTime} min
-                </span>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPendingRide(null)}
-                className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  dispatch({
-                    type: "COMPLETE_RIDE",
-                    payload: {
-                      rideId: pendingRide.id,
-                      rideName: pendingRide.name,
-                      waitTime: pendingRide.waitTime,
-                      onRideTime: pendingRide.onRideTime,
-                      walkingTime: 5,
-                    },
-                  });
-                  setPendingRide(null);
-                }}
-                className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
-              >
-                Confirm
-              </button>
-            </div>
+            {(() => {
+              const walkingTime = getWalkingTime(lastArea, pendingRide.parkArea);
+              const totalMin = pendingRide.waitTime + pendingRide.onRideTime + walkingTime;
+              const finishTime = state.currentTime
+                ? new Date(state.currentTime.getTime() + totalMin * 60000)
+                : null;
+              const overshoot =
+                !!state.endTime && !!finishTime && finishTime > state.endTime;
+              return (
+                <>
+                  <div className="bg-secondary/5 border border-secondary/30 rounded-lg p-4 mb-5">
+                    <div className="text-xs font-body text-muted-foreground uppercase tracking-wide mb-1">
+                      {pendingRide.parkArea}
+                    </div>
+                    <div className="font-display text-lg text-foreground mb-3">{pendingRide.name}</div>
+                    <div className="flex justify-between text-sm font-body">
+                      <span className="text-muted-foreground">Walk</span>
+                      <span className="font-semibold text-foreground">{walkingTime} min</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-body">
+                      <span className="text-muted-foreground">Wait Time</span>
+                      <span className="font-semibold text-foreground">{pendingRide.waitTime} min</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-body">
+                      <span className="text-muted-foreground">Ride Time</span>
+                      <span className="font-semibold text-foreground">{pendingRide.onRideTime} min</span>
+                    </div>
+                    <div className="border-t border-border mt-2 pt-2 flex justify-between text-sm font-body">
+                      <span className="text-muted-foreground">Total</span>
+                      <span className="font-semibold text-secondary">{totalMin} min</span>
+                    </div>
+                  </div>
+                  {overshoot && (
+                    <div className="mb-4 text-xs font-body text-destructive bg-destructive/10 border border-destructive/30 rounded p-2">
+                      Heads up: this ride will finish at {formatTime(finishTime)}, after your day ends.
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPendingRide(null)}
+                      className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        dispatch({
+                          type: "COMPLETE_RIDE",
+                          payload: {
+                            rideId: pendingRide.id,
+                            rideName: pendingRide.name,
+                            parkArea: pendingRide.parkArea,
+                            waitTime: pendingRide.waitTime,
+                            onRideTime: pendingRide.onRideTime,
+                            walkingTime,
+                          },
+                        });
+                        setPendingRide(null);
+                      }}
+                      className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}
