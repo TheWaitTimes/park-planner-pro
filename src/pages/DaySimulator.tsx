@@ -462,35 +462,59 @@ export default function DaySimulator() {
             {ridesWithWaits
               .slice()
               .sort((a, b) => a.parkArea.localeCompare(b.parkArea))
-              .map((ride) => (
-                <button
-                  key={ride.id}
-                  onClick={() =>
-                    setPendingRide({
-                      id: ride.id,
-                      name: ride.name,
-                      waitTime: ride.waitTime,
-                      onRideTime: ride.onRideTime,
-                      parkArea: ride.parkArea,
-                    })
-                  }
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
-                    ride.id === recommendedRide?.id
-                      ? "border-secondary bg-secondary/10 shadow-md"
-                      : "border-border bg-card hover:border-secondary/40"
-                  }`}
-                >
-                  <span className="text-muted-foreground">{ride.parkArea}</span>
-                  <span className="mx-2 text-muted-foreground">—</span>
-                  <span className={`font-semibold ${ride.id === recommendedRide?.id ? "text-secondary-foreground" : "text-foreground"}`}>
-                    {ride.name}
-                  </span>
-                  <span className="float-right text-muted-foreground inline-flex items-center gap-1">
-                    {ride.waitTime}m wait · {ride.onRideTime}m ride
-                    {ride.id === recommendedRide?.id && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
-                  </span>
-                </button>
-              ))}
+              .map((ride) => {
+                const riddenCount = ridesRiddenCount[ride.id] ?? 0;
+                const isRecommended = ride.id === recommendedRide?.id;
+                const disabled = ride.closed;
+                return (
+                  <button
+                    key={ride.id}
+                    disabled={disabled}
+                    onClick={() =>
+                      setPendingRide({
+                        id: ride.id,
+                        name: ride.name,
+                        waitTime: ride.waitTime,
+                        onRideTime: ride.onRideTime,
+                        parkArea: ride.parkArea,
+                      })
+                    }
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
+                      disabled
+                        ? "border-border bg-muted/40 text-muted-foreground cursor-not-allowed opacity-60"
+                        : isRecommended
+                          ? "border-secondary bg-secondary/10 shadow-md"
+                          : riddenCount > 0
+                            ? "border-border bg-card opacity-70 hover:opacity-100 hover:border-secondary/40"
+                            : "border-border bg-card hover:border-secondary/40"
+                    }`}
+                  >
+                    <span className="text-muted-foreground">{ride.parkArea}</span>
+                    <span className="mx-2 text-muted-foreground">—</span>
+                    <span className={`font-semibold ${isRecommended ? "text-secondary-foreground" : "text-foreground"}`}>
+                      {ride.name}
+                    </span>
+                    {riddenCount > 0 && !disabled && (
+                      <span className="ml-2 text-[11px] font-body text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                        Ridden ×{riddenCount}
+                      </span>
+                    )}
+                    <span className="float-right text-muted-foreground inline-flex items-center gap-1">
+                      {disabled ? (
+                        <span className="inline-flex items-center gap-1 text-destructive">
+                          <CloudRain className="w-3.5 h-3.5" /> Closed
+                          {state.weatherClearTime && ` · reopens ${formatTime(state.weatherClearTime)}`}
+                        </span>
+                      ) : (
+                        <>
+                          {ride.waitTime}m wait · {ride.onRideTime}m ride
+                          {isRecommended && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
+                        </>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
           </div>
 
           {/* Park Hop */}
