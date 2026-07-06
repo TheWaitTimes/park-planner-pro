@@ -75,24 +75,48 @@ export default function DaySimulator() {
   const currentParkName = state.selectedParks[state.currentParkIndex];
   const currentPark = PARKS[currentParkName];
   const totalWait = state.completedRides.reduce((sum, r) => sum + r.waitTime, 0);
+  const timeInvalid = endHour <= startHour;
+
+  // Track ride counts and last area visited (for walking-time & recommendation logic)
+  const ridesRiddenCount = useMemo(() => {
+    const map: Record<string, number> = {};
+    state.completedRides.forEach((r) => {
+      map[r.rideId] = (map[r.rideId] ?? 0) + 1;
+    });
+    return map;
+  }, [state.completedRides]);
+
+  const lastArea = useMemo(() => {
+    for (let i = state.completedRides.length - 1; i >= 0; i--) {
+      const r = state.completedRides[i];
+      if (r.visitIndex === state.currentParkIndex && r.parkArea) return r.parkArea;
+    }
+    return null;
+  }, [state.completedRides, state.currentParkIndex]);
 
   const ridesWithWaits = useMemo(() => {
     if (!currentPark || !state.currentTime) return [];
     const timeOfDay = getTimeOfDay(state.currentTime);
-    return currentPark.rides
-      .filter((ride) => !(state.weatherActive && ride.weatherEffect === 1))
-      .map((ride) => {
-        let [min, max] = ride.waitTimes[timeOfDay];
-        min = Math.max(0, min + crowdModifier);
-        max = Math.max(min, max + crowdModifier);
-        const waitTime = randomWait(min, max);
-        return { ...ride, waitTime, min };
-      });
+    return currentPark.rides.map((ride) => {
+      let [min, max] = ride.waitTimes[timeOfDay];
+      min = Math.max(5, min + crowdModifier);
+      max = Math.max(min, max + crowdModifier);
+      const waitTime = randomWait(min, max);
+      const closed = state.weatherActive && ride.weatherEffect === 1;
+      return { ...ride, waitTime, min, closed };
+    });
   }, [state.currentTime, state.weatherActive, currentParkName, crowdModifier]);
 
-  const recommendedRide = ridesWithWaits.reduce<{ ride: typeof ridesWithWaits[0]; diff: number } | null>((best, ride) => {
-    const diff = ride.waitTime - ride.min;
-    if (!best || diff < best.diff) return { ride, diff };
+  // Composite score: lower is better. Primary = wait time; walk penalty; ridden penalty; on-ride bonus.
+  const recommendedRide = ridesWithWaits.reduce<
+    { ride: typeof ridesWithWaits[0]; score: number } | null
+  >((best, ride) => {
+    if (ride.closed) return best;
+    const walkPenalty = lastArea && ride.parkArea !== lastArea ? 6 : 0;
+    const riddenPenalty = (ridesRiddenCount[ride.id] ?? 0) * 40;
+    const rideValueBonus = ride.onRideTime * 0.4;
+    const score = ride.waitTime + walkPenalty + riddenPenalty - rideValueBonus;
+    if (!best || score < best.score) return { ride, score };
     return best;
   }, null)?.ride;
 
