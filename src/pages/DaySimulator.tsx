@@ -556,8 +556,8 @@ export default function DaySimulator() {
               </button>
             </div>
             <div className="space-y-3 max-h-80 overflow-y-auto text-sm font-body">
-              {Object.entries(grouped).map(([park, rides]) => (
-                <div key={park}>
+              {groupedVisits.map(({ key, park, rides }) => (
+                <div key={key}>
                   <div className="font-semibold text-secondary mb-1">{park}</div>
                   {rides.map((ride, i) => {
                     const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
