@@ -127,10 +127,12 @@ export default function DaySimulator() {
   }, [state.currentTime, state.status]);
 
   const handleStartSimulation = () => {
+    if (timeInvalid) return;
+    const windowMinutes = Math.max(1, (endHour - startHour) * 60);
     let weatherStartTime: Date | null = null;
     let weatherClearTime: Date | null = null;
     if (Math.random() * 100 < weatherChance) {
-      const randomMinute = Math.floor(Math.random() * ((endHour - startHour) * 60));
+      const randomMinute = Math.floor(Math.random() * windowMinutes);
       weatherStartTime = new Date(`2026-01-21T${String(startHour).padStart(2, "0")}:00:00`);
       weatherStartTime.setMinutes(weatherStartTime.getMinutes() + randomMinute);
       const clearMinutes = 60 + Math.floor(Math.random() * 241);
@@ -149,11 +151,19 @@ export default function DaySimulator() {
     });
   };
 
-  // Group rides by park
-  const grouped: Record<string, typeof state.completedRides> = {};
+  // Group rides by park VISIT (so revisits render as separate sections chronologically)
+  const groupedVisits: { key: string; park: string; rides: typeof state.completedRides }[] = [];
   state.completedRides.forEach((ride) => {
-    if (!grouped[ride.park]) grouped[ride.park] = [];
-    grouped[ride.park].push(ride);
+    const last = groupedVisits[groupedVisits.length - 1];
+    if (last && last.key === `${ride.visitIndex}-${ride.park}`) {
+      last.rides.push(ride);
+    } else {
+      groupedVisits.push({
+        key: `${ride.visitIndex}-${ride.park}`,
+        park: ride.park,
+        rides: [ride],
+      });
+    }
   });
 
   const handleExportPDF = () => {
