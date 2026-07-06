@@ -40,6 +40,22 @@ const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
   { name: "Animal Kingdom", icon: Trees },
 ];
 
+const PARK_HOP_TIMES: Record<string, Record<string, number>> = {
+  "Magic Kingdom": { EPCOT: 25, "Hollywood Studios": 35, "Animal Kingdom": 45 },
+  EPCOT: { "Magic Kingdom": 25, "Hollywood Studios": 15, "Animal Kingdom": 30 },
+  "Hollywood Studios": { "Magic Kingdom": 35, EPCOT: 15, "Animal Kingdom": 25 },
+  "Animal Kingdom": { "Magic Kingdom": 45, EPCOT: 30, "Hollywood Studios": 25 },
+};
+
+function getHopTime(from: string, to: string): number {
+  return PARK_HOP_TIMES[from]?.[to] ?? 30;
+}
+
+function getWalkingTime(fromArea: string | null, toArea: string): number {
+  if (!fromArea) return 5;
+  return fromArea === toArea ? 3 : 7;
+}
+
 export default function DaySimulator() {
   const [state, dispatch] = useReducer(simulationReducer, initialSimulationState);
   const [startPark, setStartPark] = useState("Magic Kingdom");
@@ -59,24 +75,48 @@ export default function DaySimulator() {
   const currentParkName = state.selectedParks[state.currentParkIndex];
   const currentPark = PARKS[currentParkName];
   const totalWait = state.completedRides.reduce((sum, r) => sum + r.waitTime, 0);
+  const timeInvalid = endHour <= startHour;
+
+  // Track ride counts and last area visited (for walking-time & recommendation logic)
+  const ridesRiddenCount = useMemo(() => {
+    const map: Record<string, number> = {};
+    state.completedRides.forEach((r) => {
+      map[r.rideId] = (map[r.rideId] ?? 0) + 1;
+    });
+    return map;
+  }, [state.completedRides]);
+
+  const lastArea = useMemo(() => {
+    for (let i = state.completedRides.length - 1; i >= 0; i--) {
+      const r = state.completedRides[i];
+      if (r.visitIndex === state.currentParkIndex && r.parkArea) return r.parkArea;
+    }
+    return null;
+  }, [state.completedRides, state.currentParkIndex]);
 
   const ridesWithWaits = useMemo(() => {
     if (!currentPark || !state.currentTime) return [];
     const timeOfDay = getTimeOfDay(state.currentTime);
-    return currentPark.rides
-      .filter((ride) => !(state.weatherActive && ride.weatherEffect === 1))
-      .map((ride) => {
-        let [min, max] = ride.waitTimes[timeOfDay];
-        min = Math.max(0, min + crowdModifier);
-        max = Math.max(min, max + crowdModifier);
-        const waitTime = randomWait(min, max);
-        return { ...ride, waitTime, min };
-      });
+    return currentPark.rides.map((ride) => {
+      let [min, max] = ride.waitTimes[timeOfDay];
+      min = Math.max(5, min + crowdModifier);
+      max = Math.max(min, max + crowdModifier);
+      const waitTime = randomWait(min, max);
+      const closed = state.weatherActive && ride.weatherEffect === 1;
+      return { ...ride, waitTime, min, closed };
+    });
   }, [state.currentTime, state.weatherActive, currentParkName, crowdModifier]);
 
-  const recommendedRide = ridesWithWaits.reduce<{ ride: typeof ridesWithWaits[0]; diff: number } | null>((best, ride) => {
-    const diff = ride.waitTime - ride.min;
-    if (!best || diff < best.diff) return { ride, diff };
+  // Composite score: lower is better. Primary = wait time; walk penalty; ridden penalty; on-ride bonus.
+  const recommendedRide = ridesWithWaits.reduce<
+    { ride: typeof ridesWithWaits[0]; score: number } | null
+  >((best, ride) => {
+    if (ride.closed) return best;
+    const walkPenalty = lastArea && ride.parkArea !== lastArea ? 6 : 0;
+    const riddenPenalty = (ridesRiddenCount[ride.id] ?? 0) * 40;
+    const rideValueBonus = ride.onRideTime * 0.4;
+    const score = ride.waitTime + walkPenalty + riddenPenalty - rideValueBonus;
+    if (!best || score < best.score) return { ride, score };
     return best;
   }, null)?.ride;
 
@@ -87,10 +127,12 @@ export default function DaySimulator() {
   }, [state.currentTime, state.status]);
 
   const handleStartSimulation = () => {
+    if (timeInvalid) return;
+    const windowMinutes = Math.max(1, (endHour - startHour) * 60);
     let weatherStartTime: Date | null = null;
     let weatherClearTime: Date | null = null;
     if (Math.random() * 100 < weatherChance) {
-      const randomMinute = Math.floor(Math.random() * ((endHour - startHour) * 60));
+      const randomMinute = Math.floor(Math.random() * windowMinutes);
       weatherStartTime = new Date(`2026-01-21T${String(startHour).padStart(2, "0")}:00:00`);
       weatherStartTime.setMinutes(weatherStartTime.getMinutes() + randomMinute);
       const clearMinutes = 60 + Math.floor(Math.random() * 241);
@@ -109,11 +151,19 @@ export default function DaySimulator() {
     });
   };
 
-  // Group rides by park
-  const grouped: Record<string, typeof state.completedRides> = {};
+  // Group rides by park VISIT (so revisits render as separate sections chronologically)
+  const groupedVisits: { key: string; park: string; rides: typeof state.completedRides }[] = [];
   state.completedRides.forEach((ride) => {
-    if (!grouped[ride.park]) grouped[ride.park] = [];
-    grouped[ride.park].push(ride);
+    const last = groupedVisits[groupedVisits.length - 1];
+    if (last && last.key === `${ride.visitIndex}-${ride.park}`) {
+      last.rides.push(ride);
+    } else {
+      groupedVisits.push({
+        key: `${ride.visitIndex}-${ride.park}`,
+        park: ride.park,
+        rides: [ride],
+      });
+    }
   });
 
   const handleExportPDF = () => {
@@ -200,7 +250,7 @@ export default function DaySimulator() {
     const lineHeight = 5;
     const bottomLimit = pageHeight - 20;
 
-    Object.entries(grouped).forEach(([park, rides]) => {
+    groupedVisits.forEach(({ park, rides }) => {
       if (y > bottomLimit - 20) { doc.addPage(); y = 20; }
       doc.setFontSize(14);
       doc.setTextColor(30, 60, 120);
@@ -248,8 +298,8 @@ export default function DaySimulator() {
         </div>
 
         <h2 className="text-3xl text-foreground mb-4">Timeline</h2>
-        {Object.entries(grouped).map(([park, rides]) => (
-          <div key={park} className="mb-6">
+        {groupedVisits.map(({ key, park, rides }) => (
+          <div key={key} className="mb-6">
             <h3 className="text-2xl text-secondary mb-2">{park}</h3>
             <div className="space-y-1">
               {rides.map((ride, i) => {
@@ -363,9 +413,15 @@ export default function DaySimulator() {
                 className="w-full mt-1 accent-secondary" />
             </label>
 
+            {timeInvalid && (
+              <p className="text-xs font-body text-destructive mb-2">
+                End time must be after start time.
+              </p>
+            )}
             <button
               onClick={handleStartSimulation}
-              className="w-full bg-secondary text-secondary-foreground font-display text-xl py-3 rounded-lg hover:opacity-90 transition"
+              disabled={timeInvalid}
+              className="w-full bg-secondary text-secondary-foreground font-display text-xl py-3 rounded-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Enter Park
             </button>
@@ -406,35 +462,59 @@ export default function DaySimulator() {
             {ridesWithWaits
               .slice()
               .sort((a, b) => a.parkArea.localeCompare(b.parkArea))
-              .map((ride) => (
-                <button
-                  key={ride.id}
-                  onClick={() =>
-                    setPendingRide({
-                      id: ride.id,
-                      name: ride.name,
-                      waitTime: ride.waitTime,
-                      onRideTime: ride.onRideTime,
-                      parkArea: ride.parkArea,
-                    })
-                  }
-                  className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
-                    ride.id === recommendedRide?.id
-                      ? "border-secondary bg-secondary/10 shadow-md"
-                      : "border-border bg-card hover:border-secondary/40"
-                  }`}
-                >
-                  <span className="text-muted-foreground">{ride.parkArea}</span>
-                  <span className="mx-2 text-muted-foreground">—</span>
-                  <span className={`font-semibold ${ride.id === recommendedRide?.id ? "text-secondary-foreground" : "text-foreground"}`}>
-                    {ride.name}
-                  </span>
-                  <span className="float-right text-muted-foreground inline-flex items-center gap-1">
-                    {ride.waitTime}m wait · {ride.onRideTime}m ride
-                    {ride.id === recommendedRide?.id && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
-                  </span>
-                </button>
-              ))}
+              .map((ride) => {
+                const riddenCount = ridesRiddenCount[ride.id] ?? 0;
+                const isRecommended = ride.id === recommendedRide?.id;
+                const disabled = ride.closed;
+                return (
+                  <button
+                    key={ride.id}
+                    disabled={disabled}
+                    onClick={() =>
+                      setPendingRide({
+                        id: ride.id,
+                        name: ride.name,
+                        waitTime: ride.waitTime,
+                        onRideTime: ride.onRideTime,
+                        parkArea: ride.parkArea,
+                      })
+                    }
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
+                      disabled
+                        ? "border-border bg-muted/40 text-muted-foreground cursor-not-allowed opacity-60"
+                        : isRecommended
+                          ? "border-secondary bg-secondary/10 shadow-md"
+                          : riddenCount > 0
+                            ? "border-border bg-card opacity-70 hover:opacity-100 hover:border-secondary/40"
+                            : "border-border bg-card hover:border-secondary/40"
+                    }`}
+                  >
+                    <span className="text-muted-foreground">{ride.parkArea}</span>
+                    <span className="mx-2 text-muted-foreground">—</span>
+                    <span className={`font-semibold ${isRecommended ? "text-secondary-foreground" : "text-foreground"}`}>
+                      {ride.name}
+                    </span>
+                    {riddenCount > 0 && !disabled && (
+                      <span className="ml-2 text-[11px] font-body text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                        Ridden ×{riddenCount}
+                      </span>
+                    )}
+                    <span className="float-right text-muted-foreground inline-flex items-center gap-1">
+                      {disabled ? (
+                        <span className="inline-flex items-center gap-1 text-destructive">
+                          <CloudRain className="w-3.5 h-3.5" /> Closed
+                          {state.weatherClearTime && ` · reopens ${formatTime(state.weatherClearTime)}`}
+                        </span>
+                      ) : (
+                        <>
+                          {ride.waitTime}m wait · {ride.onRideTime}m ride
+                          {isRecommended && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
+                        </>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
           </div>
 
           {/* Park Hop */}
@@ -442,15 +522,19 @@ export default function DaySimulator() {
           <div className="flex flex-wrap gap-2">
             {Object.keys(PARKS)
               .filter((park) => park !== currentParkName)
-              .map((park) => (
-                <button
-                  key={park}
-                  onClick={() => setPendingAction({ kind: "hop", targetPark: park, travelTime: 30 })}
-                  className="bg-primary text-primary-foreground font-display text-lg px-5 py-2 rounded-lg hover:opacity-90 transition"
-                >
-                  {park}
-                </button>
-              ))}
+              .map((park) => {
+                const travelTime = getHopTime(currentParkName, park);
+                return (
+                  <button
+                    key={park}
+                    onClick={() => setPendingAction({ kind: "hop", targetPark: park, travelTime })}
+                    className="bg-primary text-primary-foreground font-display text-base px-4 py-2 rounded-lg hover:opacity-90 transition inline-flex flex-col items-start"
+                  >
+                    <span>{park}</span>
+                    <span className="text-xs opacity-80 font-body">{travelTime} min travel</span>
+                  </button>
+                );
+              })}
           </div>
         </div>
 
@@ -506,8 +590,8 @@ export default function DaySimulator() {
               </button>
             </div>
             <div className="space-y-3 max-h-80 overflow-y-auto text-sm font-body">
-              {Object.entries(grouped).map(([park, rides]) => (
-                <div key={park}>
+              {groupedVisits.map(({ key, park, rides }) => (
+                <div key={key}>
                   <div className="font-semibold text-secondary mb-1">{park}</div>
                   {rides.map((ride, i) => {
                     const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
@@ -542,52 +626,73 @@ export default function DaySimulator() {
             <p className="text-sm font-body text-muted-foreground mb-4">
               Ready to ride this attraction?
             </p>
-            <div className="bg-secondary/5 border border-secondary/30 rounded-lg p-4 mb-5">
-              <div className="text-xs font-body text-muted-foreground uppercase tracking-wide mb-1">
-                {pendingRide.parkArea}
-              </div>
-              <div className="font-display text-lg text-foreground mb-3">{pendingRide.name}</div>
-              <div className="flex justify-between text-sm font-body">
-                <span className="text-muted-foreground">Wait Time</span>
-                <span className="font-semibold text-foreground">{pendingRide.waitTime} min</span>
-              </div>
-              <div className="flex justify-between text-sm font-body">
-                <span className="text-muted-foreground">Ride Time</span>
-                <span className="font-semibold text-foreground">{pendingRide.onRideTime} min</span>
-              </div>
-              <div className="border-t border-border mt-2 pt-2 flex justify-between text-sm font-body">
-                <span className="text-muted-foreground">Total</span>
-                <span className="font-semibold text-secondary">
-                  {pendingRide.waitTime + pendingRide.onRideTime} min
-                </span>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => setPendingRide(null)}
-                className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  dispatch({
-                    type: "COMPLETE_RIDE",
-                    payload: {
-                      rideId: pendingRide.id,
-                      rideName: pendingRide.name,
-                      waitTime: pendingRide.waitTime,
-                      onRideTime: pendingRide.onRideTime,
-                      walkingTime: 5,
-                    },
-                  });
-                  setPendingRide(null);
-                }}
-                className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
-              >
-                Confirm
-              </button>
-            </div>
+            {(() => {
+              const walkingTime = getWalkingTime(lastArea, pendingRide.parkArea);
+              const totalMin = pendingRide.waitTime + pendingRide.onRideTime + walkingTime;
+              const finishTime = state.currentTime
+                ? new Date(state.currentTime.getTime() + totalMin * 60000)
+                : null;
+              const overshoot =
+                !!state.endTime && !!finishTime && finishTime > state.endTime;
+              return (
+                <>
+                  <div className="bg-secondary/5 border border-secondary/30 rounded-lg p-4 mb-5">
+                    <div className="text-xs font-body text-muted-foreground uppercase tracking-wide mb-1">
+                      {pendingRide.parkArea}
+                    </div>
+                    <div className="font-display text-lg text-foreground mb-3">{pendingRide.name}</div>
+                    <div className="flex justify-between text-sm font-body">
+                      <span className="text-muted-foreground">Walk</span>
+                      <span className="font-semibold text-foreground">{walkingTime} min</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-body">
+                      <span className="text-muted-foreground">Wait Time</span>
+                      <span className="font-semibold text-foreground">{pendingRide.waitTime} min</span>
+                    </div>
+                    <div className="flex justify-between text-sm font-body">
+                      <span className="text-muted-foreground">Ride Time</span>
+                      <span className="font-semibold text-foreground">{pendingRide.onRideTime} min</span>
+                    </div>
+                    <div className="border-t border-border mt-2 pt-2 flex justify-between text-sm font-body">
+                      <span className="text-muted-foreground">Total</span>
+                      <span className="font-semibold text-secondary">{totalMin} min</span>
+                    </div>
+                  </div>
+                  {overshoot && (
+                    <div className="mb-4 text-xs font-body text-destructive bg-destructive/10 border border-destructive/30 rounded p-2">
+                      Heads up: this ride will finish at {formatTime(finishTime)}, after your day ends.
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setPendingRide(null)}
+                      className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        dispatch({
+                          type: "COMPLETE_RIDE",
+                          payload: {
+                            rideId: pendingRide.id,
+                            rideName: pendingRide.name,
+                            parkArea: pendingRide.parkArea,
+                            waitTime: pendingRide.waitTime,
+                            onRideTime: pendingRide.onRideTime,
+                            walkingTime,
+                          },
+                        });
+                        setPendingRide(null);
+                      }}
+                      className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
+                    >
+                      Confirm
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
           </div>
         </div>
       )}

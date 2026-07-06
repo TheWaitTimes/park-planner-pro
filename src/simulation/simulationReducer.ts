@@ -13,12 +13,14 @@ export interface SimulationState {
 export interface CompletedRide {
   rideId: string;
   rideName: string;
+  parkArea?: string;
   waitTime: number;
   onRideTime: number;
   walkingTime: number;
   timeStarted: Date;
   timeFinished: Date;
   park: string;
+  visitIndex: number;
 }
 
 export type SimulationAction =
@@ -38,6 +40,7 @@ export type SimulationAction =
       payload: {
         rideId: string;
         rideName: string;
+        parkArea?: string;
         waitTime: number;
         onRideTime: number;
         walkingTime: number;
@@ -114,6 +117,7 @@ export function simulationReducer(
         timeStarted: state.currentTime!,
         timeFinished: newTime,
         park: state.selectedParks[state.currentParkIndex],
+        visitIndex: state.currentParkIndex,
       };
       return {
         ...state,
