@@ -413,9 +413,15 @@ export default function DaySimulator() {
                 className="w-full mt-1 accent-secondary" />
             </label>
 
+            {timeInvalid && (
+              <p className="text-xs font-body text-destructive mb-2">
+                End time must be after start time.
+              </p>
+            )}
             <button
               onClick={handleStartSimulation}
-              className="w-full bg-secondary text-secondary-foreground font-display text-xl py-3 rounded-lg hover:opacity-90 transition"
+              disabled={timeInvalid}
+              className="w-full bg-secondary text-secondary-foreground font-display text-xl py-3 rounded-lg hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Enter Park
             </button>
