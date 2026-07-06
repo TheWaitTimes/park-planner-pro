@@ -250,7 +250,7 @@ export default function DaySimulator() {
     const lineHeight = 5;
     const bottomLimit = pageHeight - 20;
 
-    Object.entries(grouped).forEach(([park, rides]) => {
+    groupedVisits.forEach(({ park, rides }) => {
       if (y > bottomLimit - 20) { doc.addPage(); y = 20; }
       doc.setFontSize(14);
       doc.setTextColor(30, 60, 120);
