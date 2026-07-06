@@ -40,6 +40,7 @@ export type SimulationAction =
       payload: {
         rideId: string;
         rideName: string;
+        parkArea?: string;
         waitTime: number;
         onRideTime: number;
         walkingTime: number;
