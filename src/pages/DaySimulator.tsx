@@ -522,15 +522,19 @@ export default function DaySimulator() {
           <div className="flex flex-wrap gap-2">
             {Object.keys(PARKS)
               .filter((park) => park !== currentParkName)
-              .map((park) => (
-                <button
-                  key={park}
-                  onClick={() => setPendingAction({ kind: "hop", targetPark: park, travelTime: 30 })}
-                  className="bg-primary text-primary-foreground font-display text-lg px-5 py-2 rounded-lg hover:opacity-90 transition"
-                >
-                  {park}
-                </button>
-              ))}
+              .map((park) => {
+                const travelTime = getHopTime(currentParkName, park);
+                return (
+                  <button
+                    key={park}
+                    onClick={() => setPendingAction({ kind: "hop", targetPark: park, travelTime })}
+                    className="bg-primary text-primary-foreground font-display text-base px-4 py-2 rounded-lg hover:opacity-90 transition inline-flex flex-col items-start"
+                  >
+                    <span>{park}</span>
+                    <span className="text-xs opacity-80 font-body">{travelTime} min travel</span>
+                  </button>
+                );
+              })}
           </div>
         </div>
 
