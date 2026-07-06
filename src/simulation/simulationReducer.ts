@@ -117,7 +117,6 @@ export function simulationReducer(
         timeStarted: state.currentTime!,
         timeFinished: newTime,
         park: state.selectedParks[state.currentParkIndex],
-        park: state.selectedParks[state.currentParkIndex],
         visitIndex: state.currentParkIndex,
       };
       return {
