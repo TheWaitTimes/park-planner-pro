@@ -40,6 +40,22 @@ const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
   { name: "Animal Kingdom", icon: Trees },
 ];
 
+const PARK_HOP_TIMES: Record<string, Record<string, number>> = {
+  "Magic Kingdom": { EPCOT: 25, "Hollywood Studios": 35, "Animal Kingdom": 45 },
+  EPCOT: { "Magic Kingdom": 25, "Hollywood Studios": 15, "Animal Kingdom": 30 },
+  "Hollywood Studios": { "Magic Kingdom": 35, EPCOT: 15, "Animal Kingdom": 25 },
+  "Animal Kingdom": { "Magic Kingdom": 45, EPCOT: 30, "Hollywood Studios": 25 },
+};
+
+function getHopTime(from: string, to: string): number {
+  return PARK_HOP_TIMES[from]?.[to] ?? 30;
+}
+
+function getWalkingTime(fromArea: string | null, toArea: string): number {
+  if (!fromArea) return 5;
+  return fromArea === toArea ? 3 : 7;
+}
+
 export default function DaySimulator() {
   const [state, dispatch] = useReducer(simulationReducer, initialSimulationState);
   const [startPark, setStartPark] = useState("Magic Kingdom");
