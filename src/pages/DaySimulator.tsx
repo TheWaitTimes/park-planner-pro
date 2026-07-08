@@ -75,6 +75,16 @@ export default function DaySimulator() {
   const currentParkName = state.selectedParks[state.currentParkIndex];
   const currentPark = PARKS[currentParkName];
   const totalWait = state.completedRides.reduce((sum, r) => sum + r.waitTime, 0);
+  const totalOnRide = state.completedRides.reduce(
+    (sum, r) => sum + (r.rideId === "rest" || r.rideId === "explore" || r.rideId === "shop" ? 0 : r.onRideTime),
+    0,
+  );
+  const totalWalking = state.completedRides.reduce((sum, r) => sum + (r.walkingTime ?? 0), 0);
+  const totalBreak = state.completedRides.reduce(
+    (sum, r) => sum + (r.rideId === "rest" || r.rideId === "explore" || r.rideId === "shop" ? r.onRideTime : 0),
+    0,
+  );
+  const parkHopCount = Math.max(0, state.selectedParks.length - 1);
   const timeInvalid = endHour <= startHour;
 
   // Track ride counts and last area visited (for walking-time & recommendation logic)
