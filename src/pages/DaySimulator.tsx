@@ -75,6 +75,16 @@ export default function DaySimulator() {
   const currentParkName = state.selectedParks[state.currentParkIndex];
   const currentPark = PARKS[currentParkName];
   const totalWait = state.completedRides.reduce((sum, r) => sum + r.waitTime, 0);
+  const totalOnRide = state.completedRides.reduce(
+    (sum, r) => sum + (r.rideId === "rest" || r.rideId === "explore" || r.rideId === "shop" ? 0 : r.onRideTime),
+    0,
+  );
+  const totalWalking = state.completedRides.reduce((sum, r) => sum + (r.walkingTime ?? 0), 0);
+  const totalBreak = state.completedRides.reduce(
+    (sum, r) => sum + (r.rideId === "rest" || r.rideId === "explore" || r.rideId === "shop" ? r.onRideTime : 0),
+    0,
+  );
+  const parkHopCount = Math.max(0, state.selectedParks.length - 1);
   const timeInvalid = endHour <= startHour;
 
   // Track ride counts and last area visited (for walking-time & recommendation logic)
@@ -282,18 +292,34 @@ export default function DaySimulator() {
     return (
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl md:text-4xl text-foreground mb-6 font-semibold tracking-tight">Day Summary</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-card rounded-lg p-5 border border-border">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-card rounded-lg p-5 border border-border col-span-2">
             <div className="text-muted-foreground text-sm font-body">Parks Visited</div>
             <div className="text-2xl font-display text-foreground">{state.selectedParks.join(" → ")}</div>
           </div>
           <div className="bg-card rounded-lg p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Total Rides</div>
-            <div className="text-4xl font-display text-secondary">{state.completedRides.length}</div>
+            <div className="text-4xl font-display text-secondary">{state.completedRides.filter(r => r.rideId !== "rest" && r.rideId !== "explore" && r.rideId !== "shop").length}</div>
           </div>
           <div className="bg-card rounded-lg p-5 border border-border">
-            <div className="text-muted-foreground text-sm font-body">Total Wait Time</div>
-            <div className="text-4xl font-display text-secondary">{totalWait} min</div>
+            <div className="text-muted-foreground text-sm font-body">Ended At</div>
+            <div className="text-4xl font-display text-secondary">{formatTime(state.currentTime)}</div>
+          </div>
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Wait</div>
+            <div className="text-2xl font-display text-foreground">{totalWait} min</div>
+          </div>
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">On-Ride</div>
+            <div className="text-2xl font-display text-foreground">{totalOnRide} min</div>
+          </div>
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Walking / Travel</div>
+            <div className="text-2xl font-display text-foreground">{totalWalking + state.totalTravelMinutes} min</div>
+          </div>
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Hops · Weather</div>
+            <div className="text-2xl font-display text-foreground">{parkHopCount} · {state.weatherEventCount}</div>
           </div>
         </div>
 
@@ -573,6 +599,35 @@ export default function DaySimulator() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Day Summary */}
+          <div className="bg-card rounded-lg p-4 border border-border mb-4">
+            <h3 className="font-display text-xl text-foreground mb-3">Day Summary</h3>
+            <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm font-body">
+              <dt className="text-muted-foreground">Wait time</dt>
+              <dd className="text-right font-semibold text-foreground">{totalWait} min</dd>
+              <dt className="text-muted-foreground">On-ride time</dt>
+              <dd className="text-right font-semibold text-foreground">{totalOnRide} min</dd>
+              <dt className="text-muted-foreground">Walking</dt>
+              <dd className="text-right font-semibold text-foreground">{totalWalking} min</dd>
+              <dt className="text-muted-foreground">Park-hop travel</dt>
+              <dd className="text-right font-semibold text-foreground">{state.totalTravelMinutes} min</dd>
+              <dt className="text-muted-foreground">Breaks / explore</dt>
+              <dd className="text-right font-semibold text-foreground">{totalBreak} min</dd>
+              <dt className="text-muted-foreground">Park hops</dt>
+              <dd className="text-right font-semibold text-foreground">{parkHopCount}</dd>
+              <dt className="text-muted-foreground">Weather events</dt>
+              <dd className="text-right font-semibold text-foreground">
+                {state.weatherEventCount}{state.weatherActive ? " (active)" : ""}
+              </dd>
+              <dt className="text-muted-foreground border-t border-border pt-2 mt-1">Current time</dt>
+              <dd className="text-right font-semibold text-secondary border-t border-border pt-2 mt-1">
+                {formatTime(state.currentTime)}
+              </dd>
+              <dt className="text-muted-foreground">Park closes</dt>
+              <dd className="text-right font-semibold text-foreground">{formatTime(state.endTime)}</dd>
+            </dl>
           </div>
 
           {/* Activity Timeline */}

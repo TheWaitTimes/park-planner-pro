@@ -8,6 +8,8 @@ export interface SimulationState {
   weatherActive: boolean;
   weatherStartTime: Date | null;
   weatherClearTime: Date | null;
+  totalTravelMinutes: number;
+  weatherEventCount: number;
 }
 
 export interface CompletedRide {
@@ -59,6 +61,8 @@ export const initialSimulationState: SimulationState = {
   weatherActive: false,
   weatherStartTime: null,
   weatherClearTime: null,
+  totalTravelMinutes: 0,
+  weatherEventCount: 0,
 };
 
 export function simulationReducer(
@@ -77,6 +81,8 @@ export function simulationReducer(
         weatherActive: false,
         weatherStartTime: action.payload.weatherStartTime,
         weatherClearTime: action.payload.weatherClearTime,
+        totalTravelMinutes: 0,
+        weatherEventCount: 0,
       };
 
     case "CHECK_WEATHER": {
@@ -86,7 +92,7 @@ export function simulationReducer(
         state.currentTime >= state.weatherStartTime &&
         !state.weatherActive
       ) {
-        return { ...state, weatherActive: true };
+        return { ...state, weatherActive: true, weatherEventCount: state.weatherEventCount + 1 };
       }
       if (
         state.weatherActive &&
@@ -145,6 +151,7 @@ export function simulationReducer(
         currentTime: newTime,
         selectedParks: [...state.selectedParks, action.payload.targetPark],
         currentParkIndex: state.currentParkIndex + 1,
+        totalTravelMinutes: state.totalTravelMinutes + action.payload.travelTime,
       };
     }
 
