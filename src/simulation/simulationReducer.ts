@@ -8,6 +8,8 @@ export interface SimulationState {
   weatherActive: boolean;
   weatherStartTime: Date | null;
   weatherClearTime: Date | null;
+  totalTravelMinutes: number;
+  weatherEventCount: number;
 }
 
 export interface CompletedRide {
