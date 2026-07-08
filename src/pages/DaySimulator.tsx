@@ -375,8 +375,6 @@ export default function DaySimulator() {
   };
 
 
-    doc.save("disney-itinerary.pdf");
-  };
 
 
   // ENDED STATE
