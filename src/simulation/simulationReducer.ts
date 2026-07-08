@@ -81,6 +81,8 @@ export function simulationReducer(
         weatherActive: false,
         weatherStartTime: action.payload.weatherStartTime,
         weatherClearTime: action.payload.weatherClearTime,
+        totalTravelMinutes: 0,
+        weatherEventCount: 0,
       };
 
     case "CHECK_WEATHER": {
@@ -90,7 +92,7 @@ export function simulationReducer(
         state.currentTime >= state.weatherStartTime &&
         !state.weatherActive
       ) {
-        return { ...state, weatherActive: true };
+        return { ...state, weatherActive: true, weatherEventCount: state.weatherEventCount + 1 };
       }
       if (
         state.weatherActive &&
