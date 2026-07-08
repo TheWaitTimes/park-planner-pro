@@ -585,6 +585,35 @@ export default function DaySimulator() {
             </div>
           </div>
 
+          {/* Day Summary */}
+          <div className="bg-card rounded-lg p-4 border border-border mb-4">
+            <h3 className="font-display text-xl text-foreground mb-3">Day Summary</h3>
+            <dl className="grid grid-cols-2 gap-x-3 gap-y-2 text-sm font-body">
+              <dt className="text-muted-foreground">Wait time</dt>
+              <dd className="text-right font-semibold text-foreground">{totalWait} min</dd>
+              <dt className="text-muted-foreground">On-ride time</dt>
+              <dd className="text-right font-semibold text-foreground">{totalOnRide} min</dd>
+              <dt className="text-muted-foreground">Walking</dt>
+              <dd className="text-right font-semibold text-foreground">{totalWalking} min</dd>
+              <dt className="text-muted-foreground">Park-hop travel</dt>
+              <dd className="text-right font-semibold text-foreground">{state.totalTravelMinutes} min</dd>
+              <dt className="text-muted-foreground">Breaks / explore</dt>
+              <dd className="text-right font-semibold text-foreground">{totalBreak} min</dd>
+              <dt className="text-muted-foreground">Park hops</dt>
+              <dd className="text-right font-semibold text-foreground">{parkHopCount}</dd>
+              <dt className="text-muted-foreground">Weather events</dt>
+              <dd className="text-right font-semibold text-foreground">
+                {state.weatherEventCount}{state.weatherActive ? " (active)" : ""}
+              </dd>
+              <dt className="text-muted-foreground border-t border-border pt-2 mt-1">Current time</dt>
+              <dd className="text-right font-semibold text-secondary border-t border-border pt-2 mt-1">
+                {formatTime(state.currentTime)}
+              </dd>
+              <dt className="text-muted-foreground">Park closes</dt>
+              <dd className="text-right font-semibold text-foreground">{formatTime(state.endTime)}</dd>
+            </dl>
+          </div>
+
           {/* Activity Timeline */}
           <div className="bg-card rounded-lg p-4 border border-border mb-4">
             <div className="flex items-center justify-between mb-2">
