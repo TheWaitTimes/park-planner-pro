@@ -443,12 +443,20 @@ export default function DaySimulator() {
             Start New Day
           </button>
           <button
+            onClick={handleExportSummaryPDF}
+            disabled={state.completedRides.length === 0}
+            className="inline-flex items-center gap-2 border border-secondary text-secondary font-display text-xl px-8 py-3 rounded-lg hover:bg-secondary/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Download className="w-5 h-5" />
+            Export Summary PDF
+          </button>
+          <button
             onClick={handleExportPDF}
             disabled={state.completedRides.length === 0}
             className="inline-flex items-center gap-2 border border-secondary text-secondary font-display text-xl px-8 py-3 rounded-lg hover:bg-secondary/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-5 h-5" />
-            Export PDF
+            Export Itinerary PDF
           </button>
         </div>
       </div>
