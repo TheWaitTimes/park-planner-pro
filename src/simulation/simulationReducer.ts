@@ -151,6 +151,7 @@ export function simulationReducer(
         currentTime: newTime,
         selectedParks: [...state.selectedParks, action.payload.targetPark],
         currentParkIndex: state.currentParkIndex + 1,
+        totalTravelMinutes: state.totalTravelMinutes + action.payload.travelTime,
       };
     }
 
