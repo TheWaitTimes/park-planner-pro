@@ -282,6 +282,10 @@ export default function DaySimulator() {
       });
       y += 4;
     });
+
+    doc.save("disney-itinerary.pdf");
+  };
+
   const handleExportSummaryPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
