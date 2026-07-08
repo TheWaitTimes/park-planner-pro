@@ -292,18 +292,34 @@ export default function DaySimulator() {
     return (
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl md:text-4xl text-foreground mb-6 font-semibold tracking-tight">Day Summary</h1>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-card rounded-lg p-5 border border-border">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-card rounded-lg p-5 border border-border col-span-2">
             <div className="text-muted-foreground text-sm font-body">Parks Visited</div>
             <div className="text-2xl font-display text-foreground">{state.selectedParks.join(" → ")}</div>
           </div>
           <div className="bg-card rounded-lg p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Total Rides</div>
-            <div className="text-4xl font-display text-secondary">{state.completedRides.length}</div>
+            <div className="text-4xl font-display text-secondary">{state.completedRides.filter(r => r.rideId !== "rest" && r.rideId !== "explore" && r.rideId !== "shop").length}</div>
           </div>
           <div className="bg-card rounded-lg p-5 border border-border">
-            <div className="text-muted-foreground text-sm font-body">Total Wait Time</div>
-            <div className="text-4xl font-display text-secondary">{totalWait} min</div>
+            <div className="text-muted-foreground text-sm font-body">Ended At</div>
+            <div className="text-4xl font-display text-secondary">{formatTime(state.currentTime)}</div>
+          </div>
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Wait</div>
+            <div className="text-2xl font-display text-foreground">{totalWait} min</div>
+          </div>
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">On-Ride</div>
+            <div className="text-2xl font-display text-foreground">{totalOnRide} min</div>
+          </div>
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Walking / Travel</div>
+            <div className="text-2xl font-display text-foreground">{totalWalking + state.totalTravelMinutes} min</div>
+          </div>
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Hops · Weather</div>
+            <div className="text-2xl font-display text-foreground">{parkHopCount} · {state.weatherEventCount}</div>
           </div>
         </div>
 
