@@ -61,6 +61,8 @@ export const initialSimulationState: SimulationState = {
   weatherActive: false,
   weatherStartTime: null,
   weatherClearTime: null,
+  totalTravelMinutes: 0,
+  weatherEventCount: 0,
 };
 
 export function simulationReducer(
