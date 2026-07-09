@@ -1,15 +1,17 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { CalendarRange, Gauge, Trophy, FileText, LogIn, LogOut, type LucideIcon } from "lucide-react";
+import { Home as HomeIcon, CalendarRange, Gauge, Trophy, FileText, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import Home from "@/pages/Home";
 import DaySimulator from "@/pages/DaySimulator";
 import DayOptimizer from "@/pages/DayOptimizer";
 import Rankings from "@/pages/Rankings";
 import Blog from "@/pages/Blog";
 
-type Tab = "simulator" | "optimizer" | "rankings" | "blog";
+type Tab = "home" | "simulator" | "optimizer" | "rankings" | "blog";
 
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
+  { id: "home", label: "Home", icon: HomeIcon },
   { id: "simulator", label: "Day Simulator", icon: CalendarRange },
   { id: "optimizer", label: "Day Optimizer", icon: Gauge },
   { id: "rankings", label: "Rankings", icon: Trophy },
@@ -17,7 +19,7 @@ const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
 ];
 
 export default function Index() {
-  const [activeTab, setActiveTab] = useState<Tab>("simulator");
+  const [activeTab, setActiveTab] = useState<Tab>("home");
   const { session, isAdmin, signOut } = useAuth();
 
   return (
