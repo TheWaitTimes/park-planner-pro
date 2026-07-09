@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { PARKS } from "@/data/parks";
+import { cachedFetch, readCacheMeta, TTL_30_MIN } from "@/lib/liveCache";
 
 // Walt Disney World coordinates
 const WDW_LAT = 28.3852;
@@ -66,14 +67,18 @@ export default function Home() {
   const [updated, setUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const load = async () => {
+  const load = async (force = false) => {
     setLoading(true);
     setError(null);
     try {
-      const [w, r] = await Promise.all([fetchWeather(), fetchWaits()]);
+      const [w, r] = await Promise.all([
+        cachedFetch("wdw:weather", TTL_30_MIN, fetchWeather, force),
+        cachedFetch("wdw:waits", TTL_30_MIN, fetchWaits, force),
+      ]);
       setWeather(w);
       setWaits(r);
-      setUpdated(new Date());
+      const meta = readCacheMeta("wdw:weather") ?? readCacheMeta("wdw:waits");
+      setUpdated(meta ? new Date(meta.at) : new Date());
     } catch (e) {
       setError("Unable to load live data. Please try again.");
     } finally {
@@ -83,7 +88,8 @@ export default function Home() {
 
   useEffect(() => {
     load();
-    const id = setInterval(load, 30 * 60 * 1000); // 30 min
+    // Refresh only when cache is stale (>=30 min old).
+    const id = setInterval(() => load(), 30 * 60 * 1000);
     return () => clearInterval(id);
   }, []);
 
