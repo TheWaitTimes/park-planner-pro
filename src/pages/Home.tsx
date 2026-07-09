@@ -120,7 +120,7 @@ export default function Home() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-xl font-semibold text-foreground">Live Weather · Walt Disney World</h2>
           <button
-            onClick={load}
+            onClick={() => load(true)}
             disabled={loading}
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
           >
