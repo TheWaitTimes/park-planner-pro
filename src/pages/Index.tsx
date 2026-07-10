@@ -28,9 +28,16 @@ export default function Index() {
       <header className="bg-header sticky top-0 z-50 shadow-sm border-b border-header-foreground/10">
         {/* Top bar */}
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-          <h1 className="font-display text-xl md:text-2xl text-header-foreground tracking-tight font-semibold">
-            Main Street <span className="text-header-accent font-normal">Insights</span>
-          </h1>
+          <div className="flex items-center gap-3">
+            <img
+              src="/MSI.png"
+              alt="Main Street Insights logo"
+              className="h-10 w-auto md:h-12"
+            />
+            <h1 className="font-display text-xl md:text-2xl text-header-foreground tracking-tight font-semibold">
+              Main Street <span className="text-header-accent font-normal">Insights</span>
+            </h1>
+          </div>
           <div className="flex items-center gap-3 text-sm font-body">
             {session ? (
               <>
