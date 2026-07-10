@@ -111,7 +111,7 @@ export default function Home() {
           Welcome to Main Street Insights
         </h1>
         <p className="font-body text-muted-foreground mt-2">
-          Live conditions and wait times across the Walt Disney World Resort.
+          Data driven content from the most magical street on earth!
         </p>
       </div>
 
