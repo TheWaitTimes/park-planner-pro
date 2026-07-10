@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import msiLogo from "@/assets/msi-logo.png.asset.json";
 import { Home as HomeIcon, CalendarRange, Gauge, Trophy, FileText, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/Home";
@@ -30,9 +31,13 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <img
-              src="/MSI.png"
+              src={msiLogo.url}
               alt="Main Street Insights logo"
+              width={446}
+              height={512}
               className="h-14 w-auto md:h-16"
+              loading="eager"
+              decoding="async"
             />
             <h1 className="font-display text-xl md:text-2xl text-header-foreground tracking-tight font-semibold">
               Main Street <span className="text-header-accent font-normal">Insights</span>
