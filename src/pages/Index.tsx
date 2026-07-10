@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Home as HomeIcon, CalendarRange, Gauge, Trophy, FileText, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import logoAsset from "@/assets/logo.png.asset.json";
 import Home from "@/pages/Home";
 import DaySimulator from "@/pages/DaySimulator";
 import DayOptimizer from "@/pages/DayOptimizer";
