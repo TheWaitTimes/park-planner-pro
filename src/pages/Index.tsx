@@ -32,7 +32,7 @@ export default function Index() {
             <img
               src="/MSI.png"
               alt="Main Street Insights logo"
-              className="h-10 w-auto md:h-12"
+              className="h-14 w-auto md:h-16"
             />
             <h1 className="font-display text-xl md:text-2xl text-header-foreground tracking-tight font-semibold">
               Main Street <span className="text-header-accent font-normal">Insights</span>
