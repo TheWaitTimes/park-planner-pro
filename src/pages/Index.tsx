@@ -21,7 +21,9 @@ const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [simulatorPark, setSimulatorPark] = useState<string | undefined>(undefined);
   const { session, isAdmin, signOut } = useAuth();
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -98,8 +100,16 @@ export default function Index() {
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-6 py-10">
-        {activeTab === "home" && <Home />}
-        {activeTab === "simulator" && <DaySimulator />}
+        {activeTab === "home" && (
+          <Home
+            onPlanPark={(park) => {
+              setSimulatorPark(park);
+              setActiveTab("simulator");
+            }}
+          />
+        )}
+        {activeTab === "simulator" && <DaySimulator initialPark={simulatorPark} />}
+
         {activeTab === "optimizer" && <DayOptimizer />}
         {activeTab === "rankings" && <Rankings />}
         {activeTab === "blog" && <Blog />}

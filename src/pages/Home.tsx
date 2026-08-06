@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Clock } from "lucide-react";
+import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Clock, CalendarRange } from "lucide-react";
 import { PARKS } from "@/data/parks";
 import { cachedFetch, readCacheMeta, TTL_30_MIN } from "@/lib/liveCache";
 
@@ -106,7 +106,7 @@ async function fetchHours(): Promise<HoursRow[]> {
 }
 
 
-export default function Home() {
+export default function Home({ onPlanPark }: { onPlanPark?: (park: string) => void } = {}) {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [waits, setWaits] = useState<WaitRow[]>([]);
   const [hours, setHours] = useState<HoursRow[]>([]);
@@ -250,16 +250,26 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {hours.map((h) => (
-              <div key={h.park} className="rounded-lg border border-border bg-card p-5">
+              <button
+                key={h.park}
+                type="button"
+                onClick={() => onPlanPark?.(h.park)}
+                aria-label={`Plan a day at ${h.park} in the Day Simulator`}
+                className="text-left rounded-lg border border-border bg-card p-5 transition-colors hover:border-secondary hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
                 <div className="text-sm text-muted-foreground mb-1">{h.park}</div>
                 <div className="font-display text-xl font-semibold text-foreground">
                   {h.open && h.close ? `${h.open} – ${h.close}` : "Hours unavailable"}
                 </div>
                 {h.extra && <div className="text-xs text-muted-foreground mt-2">{h.extra}</div>}
-              </div>
+                <div className="text-xs text-secondary mt-3 flex items-center gap-1">
+                  <CalendarRange className="w-3.5 h-3.5" /> Plan this day
+                </div>
+              </button>
             ))}
           </div>
         )}
+
       </section>
     </div>
   );
