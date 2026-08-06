@@ -21,7 +21,9 @@ const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
 
 export default function Index() {
   const [activeTab, setActiveTab] = useState<Tab>("home");
+  const [simulatorPark, setSimulatorPark] = useState<string | undefined>(undefined);
   const { session, isAdmin, signOut } = useAuth();
+
 
   return (
     <div className="min-h-screen bg-background">
