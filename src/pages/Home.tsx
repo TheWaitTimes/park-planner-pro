@@ -237,9 +237,34 @@ export default function Home() {
           <WaitList title="Shortest Waits" icon={<TrendingDown className="w-5 h-5 text-emerald-600" />} rows={top5Short} tone="short" loading={loading && !waits.length} />
         </div>
       </section>
+
+      {/* Park Hours */}
+      <section>
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-5 h-5 text-secondary" />
+          <h2 className="font-display text-xl font-semibold text-foreground">Today's Park Hours</h2>
+        </div>
+
+        {loading && !hours.length ? (
+          <div className="text-sm text-muted-foreground">Loading…</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {hours.map((h) => (
+              <div key={h.park} className="rounded-lg border border-border bg-card p-5">
+                <div className="text-sm text-muted-foreground mb-1">{h.park}</div>
+                <div className="font-display text-xl font-semibold text-foreground">
+                  {h.open && h.close ? `${h.open} – ${h.close}` : "Hours unavailable"}
+                </div>
+                {h.extra && <div className="text-xs text-muted-foreground mt-2">{h.extra}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
+
 
 function WeatherCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
