@@ -106,7 +106,7 @@ async function fetchHours(): Promise<HoursRow[]> {
 }
 
 
-export default function Home() {
+export default function Home({ onPlanPark }: { onPlanPark?: (park: string) => void } = {}) {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [waits, setWaits] = useState<WaitRow[]>([]);
   const [hours, setHours] = useState<HoursRow[]>([]);
