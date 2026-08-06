@@ -109,6 +109,7 @@ async function fetchHours(): Promise<HoursRow[]> {
 export default function Home() {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [waits, setWaits] = useState<WaitRow[]>([]);
+  const [hours, setHours] = useState<HoursRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -117,14 +118,17 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const [w, r] = await Promise.all([
+      const [w, r, h] = await Promise.all([
         cachedFetch("wdw:weather", TTL_30_MIN, fetchWeather, force),
         cachedFetch("wdw:waits", TTL_30_MIN, fetchWaits, force),
+        cachedFetch("wdw:hours", TTL_30_MIN, fetchHours, force),
       ]);
       setWeather(w);
       setWaits(r);
+      setHours(h);
       const meta = readCacheMeta("wdw:weather") ?? readCacheMeta("wdw:waits");
       setUpdated(meta ? new Date(meta.at) : new Date());
+
     } catch (e) {
       setError("Unable to load live data. Please try again.");
     } finally {
