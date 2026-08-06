@@ -56,9 +56,16 @@ function getWalkingTime(fromArea: string | null, toArea: string): number {
   return fromArea === toArea ? 3 : 7;
 }
 
-export default function DaySimulator() {
+export default function DaySimulator({ initialPark }: { initialPark?: string } = {}) {
   const [state, dispatch] = useReducer(simulationReducer, initialSimulationState);
-  const [startPark, setStartPark] = useState("Magic Kingdom");
+  const [startPark, setStartPark] = useState(
+    initialPark && PARKS[initialPark] ? initialPark : "Magic Kingdom",
+  );
+
+  useEffect(() => {
+    if (initialPark && PARKS[initialPark]) setStartPark(initialPark);
+  }, [initialPark]);
+
   const [startHour, setStartHour] = useState(9);
   const [endHour, setEndHour] = useState(21);
   const [crowdLevel, setCrowdLevel] = useState("Moderate");
