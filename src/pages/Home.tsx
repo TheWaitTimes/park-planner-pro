@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
+import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Clock } from "lucide-react";
 import { PARKS } from "@/data/parks";
 import { cachedFetch, readCacheMeta, TTL_30_MIN } from "@/lib/liveCache";
+
 
 // Walt Disney World coordinates
 const WDW_LAT = 28.3852;
@@ -60,9 +61,55 @@ async function fetchWaits(): Promise<WaitRow[]> {
   return results.flat();
 }
 
+interface HoursRow {
+  park: string;
+  open: string | null;
+  close: string | null;
+  extra: string | null;
+}
+
+function fmtTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+  });
+}
+
+function todayInPark() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
+}
+
+async function fetchHours(): Promise<HoursRow[]> {
+  const day = todayInPark();
+  return Promise.all(
+    PARK_IDS.map(async ({ id, name }) => {
+      try {
+        const res = await fetch(`https://api.themeparks.wiki/v1/entity/${id}/schedule`);
+        const json = await res.json();
+        const entries = (json.schedule ?? []).filter((s: any) => s.date === day);
+        const operating = entries.find((s: any) => s.type === "OPERATING");
+        const special = entries.find((s: any) => s.type !== "OPERATING");
+        return {
+          park: name,
+          open: operating ? fmtTime(operating.openingTime) : null,
+          close: operating ? fmtTime(operating.closingTime) : null,
+          extra: special
+            ? `${special.description ?? special.type} · ${fmtTime(special.openingTime)}–${fmtTime(special.closingTime)}`
+            : null,
+        };
+      } catch {
+        return { park: name, open: null, close: null, extra: null };
+      }
+    }),
+  );
+}
+
+
 export default function Home() {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [waits, setWaits] = useState<WaitRow[]>([]);
+  const [hours, setHours] = useState<HoursRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -71,14 +118,17 @@ export default function Home() {
     setLoading(true);
     setError(null);
     try {
-      const [w, r] = await Promise.all([
+      const [w, r, h] = await Promise.all([
         cachedFetch("wdw:weather", TTL_30_MIN, fetchWeather, force),
         cachedFetch("wdw:waits", TTL_30_MIN, fetchWaits, force),
+        cachedFetch("wdw:hours", TTL_30_MIN, fetchHours, force),
       ]);
       setWeather(w);
       setWaits(r);
+      setHours(h);
       const meta = readCacheMeta("wdw:weather") ?? readCacheMeta("wdw:waits");
       setUpdated(meta ? new Date(meta.at) : new Date());
+
     } catch (e) {
       setError("Unable to load live data. Please try again.");
     } finally {
@@ -187,9 +237,34 @@ export default function Home() {
           <WaitList title="Shortest Waits" icon={<TrendingDown className="w-5 h-5 text-emerald-600" />} rows={top5Short} tone="short" loading={loading && !waits.length} />
         </div>
       </section>
+
+      {/* Park Hours */}
+      <section>
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-5 h-5 text-secondary" />
+          <h2 className="font-display text-xl font-semibold text-foreground">Today's Park Hours</h2>
+        </div>
+
+        {loading && !hours.length ? (
+          <div className="text-sm text-muted-foreground">Loading…</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {hours.map((h) => (
+              <div key={h.park} className="rounded-lg border border-border bg-card p-5">
+                <div className="text-sm text-muted-foreground mb-1">{h.park}</div>
+                <div className="font-display text-xl font-semibold text-foreground">
+                  {h.open && h.close ? `${h.open} – ${h.close}` : "Hours unavailable"}
+                </div>
+                {h.extra && <div className="text-xs text-muted-foreground mt-2">{h.extra}</div>}
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
+
 
 function WeatherCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
