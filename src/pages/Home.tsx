@@ -61,6 +61,51 @@ async function fetchWaits(): Promise<WaitRow[]> {
   return results.flat();
 }
 
+interface HoursRow {
+  park: string;
+  open: string | null;
+  close: string | null;
+  extra: string | null;
+}
+
+function fmtTime(iso: string) {
+  return new Date(iso).toLocaleTimeString([], {
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+  });
+}
+
+function todayInPark() {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date());
+}
+
+async function fetchHours(): Promise<HoursRow[]> {
+  const day = todayInPark();
+  return Promise.all(
+    PARK_IDS.map(async ({ id, name }) => {
+      try {
+        const res = await fetch(`https://api.themeparks.wiki/v1/entity/${id}/schedule`);
+        const json = await res.json();
+        const entries = (json.schedule ?? []).filter((s: any) => s.date === day);
+        const operating = entries.find((s: any) => s.type === "OPERATING");
+        const special = entries.find((s: any) => s.type !== "OPERATING");
+        return {
+          park: name,
+          open: operating ? fmtTime(operating.openingTime) : null,
+          close: operating ? fmtTime(operating.closingTime) : null,
+          extra: special
+            ? `${special.description ?? special.type} · ${fmtTime(special.openingTime)}–${fmtTime(special.closingTime)}`
+            : null,
+        };
+      } catch {
+        return { park: name, open: null, close: null, extra: null };
+      }
+    }),
+  );
+}
+
+
 export default function Home() {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [waits, setWaits] = useState<WaitRow[]>([]);
