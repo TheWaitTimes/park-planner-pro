@@ -106,19 +106,39 @@ function baseWait(ride: Ride, slot: Slot): number {
   return (range[0] + range[1]) / 2;
 }
 
+/**
+ * Expected wait for a ride in a slot.
+ * The per-slot rhythm already lives in the ride's own morning/afternoon/evening
+ * ranges, so no extra slot multiplier is applied here (that double-counted it).
+ * `ropeDrop` applies to the very first ride of a morning plan.
+ */
 function computeExpectedWait(
   ride: Ride,
   slot: Slot,
   month: string,
-  crowd: keyof typeof CROWD_MULTIPLIER
+  crowd: keyof typeof CROWD_MULTIPLIER,
+  ropeDrop = false
 ): number {
   const base = baseWait(ride, slot);
   const wait =
     base *
-    SLOT_WAIT_MULTIPLIER[slot] *
     (MONTH_MULTIPLIER[month] ?? 1.0) *
-    CROWD_MULTIPLIER[crowd];
-  return Math.max(5, Math.round(wait));
+    CROWD_MULTIPLIER[crowd] *
+    (ropeDrop ? ROPE_DROP_MULTIPLIER : 1);
+  return capWait(wait);
+}
+
+/** How the day's minutes are split across slots, scaled to the hours available. */
+function slotCapacities(hoursAvailable: number): Record<Slot, number> {
+  const totalMin = hoursAvailable * 60;
+  // Nominal shape of a Disney day: morning 4h, afternoon 5h, night 3h.
+  const shape = { morning: 4, afternoon: 5, night: 3 };
+  const shapeTotal = shape.morning + shape.afternoon + shape.night;
+  const morning = Math.round((totalMin * shape.morning) / shapeTotal);
+  const afternoon = Math.round((totalMin * shape.afternoon) / shapeTotal);
+  const night = totalMin - morning - afternoon;
+  // The hop happens inside the afternoon window — it shares that budget.
+  return { morning, afternoon, night, hop: afternoon };
 }
 
 function computeDifficulty(
@@ -140,6 +160,7 @@ function computeDifficulty(
     score <= 3 ? "text-green-600" : score <= 6 ? "text-yellow-600" : score <= 8 ? "text-orange-600" : "text-red-600";
   return { score, label, color };
 }
+
 
 const SLOT_ORDER: Slot[] = ["morning", "afternoon", "night", "hop"];
 
