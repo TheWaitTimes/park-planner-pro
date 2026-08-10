@@ -289,7 +289,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
       doc.setFontSize(10);
       doc.setTextColor(40);
       rides.forEach((ride) => {
-        const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+        const isAction = ride.kind === "action";
         const totalMin = ride.waitTime + ride.onRideTime;
         const detail = isAction ? `${totalMin} min` : `${ride.waitTime}m wait · ${ride.onRideTime}m ride`;
         const time = `${formatTime(ride.timeStarted)} – ${formatTime(ride.timeFinished)}`;
@@ -316,7 +316,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
     const lastEnd =
       state.completedRides[state.completedRides.length - 1]?.timeFinished ?? state.currentTime;
     const rideCount = state.completedRides.filter(
-      (r) => r.rideId !== "rest" && r.rideId !== "explore" && r.rideId !== "shop",
+      (r) => r.kind === "ride",
     ).length;
 
     // Header
@@ -409,7 +409,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           </div>
           <div className="bg-card rounded-lg p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Total Rides</div>
-            <div className="text-4xl font-display text-secondary">{state.completedRides.filter(r => r.rideId !== "rest" && r.rideId !== "explore" && r.rideId !== "shop").length}</div>
+            <div className="text-4xl font-display text-secondary">{rideCount}</div>
           </div>
           <div className="bg-card rounded-lg p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Ended At</div>
@@ -439,7 +439,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
             <h3 className="text-2xl text-secondary mb-2">{park}</h3>
             <div className="space-y-1">
               {rides.map((ride, i) => {
-                const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+                const isAction = ride.kind === "action";
                 const totalMin = ride.waitTime + ride.onRideTime;
                 return (
                   <div key={i} className={`flex items-center gap-2 text-sm font-body rounded px-3 py-2 border ${isAction ? "bg-secondary/5 border-secondary/30" : "bg-card border-border"}`}>
@@ -460,7 +460,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
         <div className="mt-6 flex flex-wrap gap-3">
           <button
             className="bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"
-            onClick={() => window.location.reload()}
+            onClick={() => dispatch({ type: "RESET_SIMULATION" })}
           >
             Start New Day
           </button>
@@ -593,7 +593,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
             Bad Weather until: {formatTime(state.weatherClearTime)}
           </div>
           <div className="text-sm font-body mt-1">
-            Closed rides: {currentPark.rides.filter((r) => r.weatherEffect === 1).map((r) => r.name).join(", ")}
+            Closed rides: {ridesWithWaits.filter((r) => r.closed).map((r) => r.name).join(", ") || "None — every attraction is still running"}
           </div>
         </div>
       )}
@@ -767,7 +767,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                 <div key={key}>
                   <div className="font-semibold text-secondary mb-1">{park}</div>
                   {rides.map((ride, i) => {
-                    const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+                    const isAction = ride.kind === "action";
                     const totalMin = ride.waitTime + ride.onRideTime;
                     return (
                       <div key={i} className={`ml-2 ${isAction ? "text-secondary" : "text-muted-foreground"}`}>
