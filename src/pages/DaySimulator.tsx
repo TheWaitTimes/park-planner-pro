@@ -610,6 +610,9 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                 const riddenCount = ridesRiddenCount[ride.id] ?? 0;
                 const isRecommended = ride.id === recommendedRide?.id;
                 const disabled = ride.closed;
+                const walk = getWalkingTime(lastArea, ride.parkArea);
+                const wontFinish =
+                  !disabled && ride.waitTime + ride.onRideTime + walk > minutesRemaining;
                 return (
                   <button
                     key={ride.id}
@@ -626,21 +629,28 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                     className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
                       disabled
                         ? "border-border bg-muted/40 text-muted-foreground cursor-not-allowed opacity-60"
-                        : isRecommended
-                          ? "border-secondary bg-secondary/10 shadow-md"
-                          : riddenCount > 0
-                            ? "border-border bg-card opacity-70 hover:opacity-100 hover:border-secondary/40"
-                            : "border-border bg-card hover:border-secondary/40"
+                        : wontFinish
+                          ? "border-destructive/40 bg-destructive/5 hover:border-destructive/60"
+                          : isRecommended
+                            ? "border-secondary bg-secondary/10 shadow-md"
+                            : riddenCount > 0
+                              ? "border-border bg-card opacity-70 hover:opacity-100 hover:border-secondary/40"
+                              : "border-border bg-card hover:border-secondary/40"
                     }`}
                   >
                     <span className="text-muted-foreground">{ride.parkArea}</span>
                     <span className="mx-2 text-muted-foreground">—</span>
-                    <span className={`font-semibold ${isRecommended ? "text-secondary-foreground" : "text-foreground"}`}>
+                    <span className={`font-semibold ${isRecommended && !wontFinish ? "text-secondary-foreground" : "text-foreground"}`}>
                       {ride.name}
                     </span>
                     {riddenCount > 0 && !disabled && (
                       <span className="ml-2 text-[11px] font-body text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                         Ridden ×{riddenCount}
+                      </span>
+                    )}
+                    {wontFinish && (
+                      <span className="ml-2 text-[11px] font-body text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
+                        Won't finish before close
                       </span>
                     )}
                     <span className="float-right text-muted-foreground inline-flex items-center gap-1">
@@ -652,12 +662,13 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                       ) : (
                         <>
                           {ride.waitTime}m wait · {ride.onRideTime}m ride
-                          {isRecommended && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
+                          {isRecommended && !wontFinish && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
                         </>
                       )}
                     </span>
                   </button>
                 );
+
               })}
           </div>
 
