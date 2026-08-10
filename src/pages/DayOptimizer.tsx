@@ -1047,6 +1047,11 @@ export default function DayOptimizer() {
                           <div data-export-text className="flex-1 min-w-0">
                             <div data-export-title className="font-semibold text-foreground leading-snug break-words inline-flex items-center gap-2 flex-wrap">
                               {r.rideName}
+                              {r.ropeDrop && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 text-secondary px-2 py-0.5 text-[10px] font-body font-semibold uppercase tracking-wide">
+                                  Rope drop
+                                </span>
+                              )}
                               {r.shutdownChance > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-body font-semibold uppercase tracking-wide">
                                   <AlertTriangle className="w-3 h-3" strokeWidth={2.5} />
@@ -1060,7 +1065,9 @@ export default function DayOptimizer() {
                           </div>
                           <div className="text-right shrink-0">
                             <div className="font-display text-secondary">{r.expectedWait}m</div>
-                            <div className="text-xs text-muted-foreground">+{r.onRideTime}m ride</div>
+                            <div className="text-xs text-muted-foreground">
+                              +{r.onRideTime}m ride · +{r.walkMinutes}m walk
+                            </div>
                           </div>
                         </div>
                       ))}
