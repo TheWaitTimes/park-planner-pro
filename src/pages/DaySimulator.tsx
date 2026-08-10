@@ -71,15 +71,21 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
   const currentPark = PARKS[currentParkName];
   const totalWait = state.completedRides.reduce((sum, r) => sum + r.waitTime, 0);
   const totalOnRide = state.completedRides.reduce(
-    (sum, r) => sum + (r.rideId === "rest" || r.rideId === "explore" || r.rideId === "shop" ? 0 : r.onRideTime),
+    (sum, r) => sum + (r.kind === "action" ? 0 : r.onRideTime),
     0,
   );
   const totalWalking = state.completedRides.reduce((sum, r) => sum + (r.walkingTime ?? 0), 0);
   const totalBreak = state.completedRides.reduce(
-    (sum, r) => sum + (r.rideId === "rest" || r.rideId === "explore" || r.rideId === "shop" ? r.onRideTime : 0),
+    (sum, r) => sum + (r.kind === "action" ? r.onRideTime : 0),
     0,
   );
+  const rideCount = state.completedRides.filter((r) => r.kind === "ride").length;
   const parkHopCount = Math.max(0, state.selectedParks.length - 1);
+  const distinctParkCount = new Set(state.selectedParks).size;
+  const minutesRemaining =
+    state.currentTime && state.endTime
+      ? Math.max(0, Math.round((state.endTime.getTime() - state.currentTime.getTime()) / 60000))
+      : 0;
   const timeInvalid = endHour <= startHour;
 
   // Track ride counts and last area visited (for walking-time & recommendation logic)
@@ -99,18 +105,32 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
     return null;
   }, [state.completedRides, state.currentParkIndex]);
 
+  const timeOfDay = state.currentTime ? getTimeOfDay(state.currentTime) : "morning";
+
+  // Which weather-sensitive rides are actually down for THIS storm.
+  // Re-rolled once per storm, not on every clock tick.
+  const closedRideIds = useMemo(() => {
+    if (!state.weatherActive || !currentPark) return new Set<string>();
+    const down = new Set<string>();
+    currentPark.rides.forEach((ride) => {
+      if (ride.weatherEffect === 1 && Math.random() < RAIN_CLOSURE_CHANCE) down.add(ride.id);
+    });
+    return down;
+  }, [state.weatherActive, state.weatherEventCount, currentParkName]);
+
+  // Waits are quoted per time-of-day block (and re-quoted when a storm starts/clears)
+  // so they don't jitter every time the clock moves a few minutes.
   const ridesWithWaits = useMemo(() => {
-    if (!currentPark || !state.currentTime) return [];
-    const timeOfDay = getTimeOfDay(state.currentTime);
+    if (!currentPark) return [];
     return currentPark.rides.map((ride) => {
       let [min, max] = ride.waitTimes[timeOfDay];
       min = Math.max(5, min + crowdModifier);
       max = Math.max(min, max + crowdModifier);
       const waitTime = randomWait(min, max);
-      const closed = state.weatherActive && ride.weatherEffect === 1;
+      const closed = closedRideIds.has(ride.id);
       return { ...ride, waitTime, min, closed };
     });
-  }, [state.currentTime, state.weatherActive, currentParkName, crowdModifier]);
+  }, [timeOfDay, closedRideIds, currentParkName, crowdModifier]);
 
   // Composite score: lower is better. Primary = wait time; walk penalty; ridden penalty; on-ride bonus.
   const recommendedRide = ridesWithWaits.reduce<
@@ -118,6 +138,9 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
   >((best, ride) => {
     if (ride.closed) return best;
     const walkPenalty = lastArea && ride.parkArea !== lastArea ? 6 : 0;
+    // Never recommend something that cannot finish before the park closes.
+    const walk = getWalkingTime(lastArea, ride.parkArea);
+    if (ride.waitTime + ride.onRideTime + walk > minutesRemaining) return best;
     const riddenPenalty = (ridesRiddenCount[ride.id] ?? 0) * 40;
     const rideValueBonus = ride.onRideTime * 0.4;
     const score = ride.waitTime + walkPenalty + riddenPenalty - rideValueBonus;
@@ -130,6 +153,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
       dispatch({ type: "CHECK_WEATHER" });
     }
   }, [state.currentTime, state.status]);
+
 
   const handleStartSimulation = () => {
     if (timeInvalid) return;
