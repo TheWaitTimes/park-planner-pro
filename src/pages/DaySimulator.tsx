@@ -8,6 +8,7 @@ import {
   initialSimulationState,
 } from "@/simulation/simulationReducer";
 import { PARKS } from "@/data/parks";
+import { getHopTime, getWalkingTime, RAIN_CLOSURE_CHANCE } from "@/lib/parkModel";
 
 function getTimeOfDay(date: Date): "morning" | "afternoon" | "evening" {
   const hour = date.getHours();
@@ -40,21 +41,8 @@ const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
   { name: "Animal Kingdom", icon: Trees },
 ];
 
-const PARK_HOP_TIMES: Record<string, Record<string, number>> = {
-  "Magic Kingdom": { EPCOT: 25, "Hollywood Studios": 35, "Animal Kingdom": 45 },
-  EPCOT: { "Magic Kingdom": 25, "Hollywood Studios": 15, "Animal Kingdom": 30 },
-  "Hollywood Studios": { "Magic Kingdom": 35, EPCOT: 15, "Animal Kingdom": 25 },
-  "Animal Kingdom": { "Magic Kingdom": 45, EPCOT: 30, "Hollywood Studios": 25 },
-};
+// Travel / walking / weather model is shared with the Day Optimizer.
 
-function getHopTime(from: string, to: string): number {
-  return PARK_HOP_TIMES[from]?.[to] ?? 30;
-}
-
-function getWalkingTime(fromArea: string | null, toArea: string): number {
-  if (!fromArea) return 5;
-  return fromArea === toArea ? 3 : 7;
-}
 
 export default function DaySimulator({ initialPark }: { initialPark?: string } = {}) {
   const [state, dispatch] = useReducer(simulationReducer, initialSimulationState);
