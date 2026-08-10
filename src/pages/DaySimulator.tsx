@@ -364,7 +364,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
       ["Walking Between Rides", `${totalWalking} min`],
       ["Park-Hop Travel", `${state.totalTravelMinutes} min`],
       ["Breaks / Exploring", `${totalBreak} min`],
-      ["Park Hops", `${parkHopCount}`],
+      ["Park Hops", `${parkHopCount} (${distinctParkCount} distinct)`],
       ["Weather Events", `${state.weatherEventCount}`],
       ["Ended At", formatTime(state.currentTime) || "—"],
     ];
@@ -430,6 +430,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Hops · Weather</div>
             <div className="text-2xl font-display text-foreground">{parkHopCount} · {state.weatherEventCount}</div>
+            <div className="text-xs font-body text-muted-foreground mt-1">{distinctParkCount} distinct park{distinctParkCount !== 1 ? "s" : ""}</div>
           </div>
         </div>
 
@@ -745,7 +746,9 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
               <dt className="text-muted-foreground">Breaks / explore</dt>
               <dd className="text-right font-semibold text-foreground">{totalBreak} min</dd>
               <dt className="text-muted-foreground">Park hops</dt>
-              <dd className="text-right font-semibold text-foreground">{parkHopCount}</dd>
+              <dd className="text-right font-semibold text-foreground">
+                {parkHopCount} ({distinctParkCount} park{distinctParkCount !== 1 ? "s" : ""})
+              </dd>
               <dt className="text-muted-foreground">Weather events</dt>
               <dd className="text-right font-semibold text-foreground">
                 {state.weatherEventCount}{state.weatherActive ? " (active)" : ""}
@@ -944,6 +947,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                     dispatch({
                       type: "COMPLETE_RIDE",
                       payload: {
+                        kind: "action",
                         rideId: pendingAction.id,
                         rideName: pendingAction.name,
                         waitTime: 0,
