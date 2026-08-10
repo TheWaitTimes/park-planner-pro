@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import {
   Sun, CloudSun, Moon, Shuffle, Castle, Globe, Clapperboard, Trees,
   BarChart3, TrendingUp, Layers, Play, Download, Ticket, CloudRain,
-  AlertTriangle, Info,
+  AlertTriangle, Info, Clock,
   type LucideIcon,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -30,6 +30,7 @@ const WEATHER_SHUTDOWN_CHANCE: Record<Weather, number> = {
   high: 0.7,
 };
 import { PARKS, type Ride } from "@/data/parks";
+import { capWait, getHopTime, getWalkingTime, ROPE_DROP_MULTIPLIER } from "@/lib/parkModel";
 
 type Slot = "morning" | "afternoon" | "night" | "hop";
 
@@ -67,13 +68,9 @@ const MONTH_MULTIPLIER: Record<string, number> = {
 
 const CROWD_MULTIPLIER = { Light: 0.75, Moderate: 1.0, Heavy: 1.35 } as const;
 
-// Slot-of-day base wait multiplier (afternoon is busiest)
-const SLOT_WAIT_MULTIPLIER: Record<Slot, number> = {
-  morning: 0.7,
-  afternoon: 1.2,
-  night: 0.9,
-  hop: 1.1,
-};
+// Note: no separate slot multiplier — each ride's morning/afternoon/evening wait
+// ranges in parks.ts already encode the time-of-day rhythm.
+
 
 const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
   { name: "Magic Kingdom", icon: Castle },
@@ -97,6 +94,9 @@ interface ReportRow {
   slot: Slot;
   expectedWait: number;
   onRideTime: number;
+  /** Walking minutes to reach this ride from the previous one in the same slot. */
+  walkMinutes: number;
+  ropeDrop: boolean;
   shutdownChance: number; // 0..1 probability the ride may not run due to weather
 }
 
@@ -106,19 +106,39 @@ function baseWait(ride: Ride, slot: Slot): number {
   return (range[0] + range[1]) / 2;
 }
 
+/**
+ * Expected wait for a ride in a slot.
+ * The per-slot rhythm already lives in the ride's own morning/afternoon/evening
+ * ranges, so no extra slot multiplier is applied here (that double-counted it).
+ * `ropeDrop` applies to the very first ride of a morning plan.
+ */
 function computeExpectedWait(
   ride: Ride,
   slot: Slot,
   month: string,
-  crowd: keyof typeof CROWD_MULTIPLIER
+  crowd: keyof typeof CROWD_MULTIPLIER,
+  ropeDrop = false
 ): number {
   const base = baseWait(ride, slot);
   const wait =
     base *
-    SLOT_WAIT_MULTIPLIER[slot] *
     (MONTH_MULTIPLIER[month] ?? 1.0) *
-    CROWD_MULTIPLIER[crowd];
-  return Math.max(5, Math.round(wait));
+    CROWD_MULTIPLIER[crowd] *
+    (ropeDrop ? ROPE_DROP_MULTIPLIER : 1);
+  return capWait(wait);
+}
+
+/** How the day's minutes are split across slots, scaled to the hours available. */
+function slotCapacities(hoursAvailable: number): Record<Slot, number> {
+  const totalMin = hoursAvailable * 60;
+  // Nominal shape of a Disney day: morning 4h, afternoon 5h, night 3h.
+  const shape = { morning: 4, afternoon: 5, night: 3 };
+  const shapeTotal = shape.morning + shape.afternoon + shape.night;
+  const morning = Math.round((totalMin * shape.morning) / shapeTotal);
+  const afternoon = Math.round((totalMin * shape.afternoon) / shapeTotal);
+  const night = totalMin - morning - afternoon;
+  // The hop happens inside the afternoon window — it shares that budget.
+  return { morning, afternoon, night, hop: afternoon };
 }
 
 function computeDifficulty(
@@ -140,6 +160,7 @@ function computeDifficulty(
     score <= 3 ? "text-green-600" : score <= 6 ? "text-yellow-600" : score <= 8 ? "text-orange-600" : "text-red-600";
   return { score, label, color };
 }
+
 
 const SLOT_ORDER: Slot[] = ["morning", "afternoon", "night", "hop"];
 
@@ -323,21 +344,27 @@ export default function DayOptimizer() {
     const rows: ReportRow[] = [];
     const shutdown = shutdownChance;
     for (const slot of SLOT_ORDER) {
-      for (const planned of plan[slot]) {
+      let previousArea: string | null = null;
+      plan[slot].forEach((planned, index) => {
         const parkRides = PARKS[planned.parkName]?.rides ?? [];
         const ride = parkRides.find((r) => r.id === planned.rideId);
-        if (!ride) continue;
+        if (!ride) return;
+        // Rope drop only applies to the first attraction of a morning plan.
+        const ropeDrop = slot === "morning" && index === 0;
         rows.push({
           rideId: ride.id,
           rideName: ride.name,
           parkArea: ride.parkArea,
           parkName: planned.parkName,
           slot,
-          expectedWait: computeExpectedWait(ride, slot, month, crowd),
+          expectedWait: computeExpectedWait(ride, slot, month, crowd, ropeDrop),
           onRideTime: ride.onRideTime,
+          walkMinutes: getWalkingTime(previousArea, ride.parkArea),
+          ropeDrop,
           shutdownChance: ride.weatherEffect === 1 ? shutdown : 0,
         });
-      }
+        previousArea = ride.parkArea;
+      });
     }
     setReport(rows);
   }, [plan, month, crowd, shutdownChance]);
@@ -350,13 +377,13 @@ export default function DayOptimizer() {
 
   const totalRides = report?.length ?? 0;
   const totalWait = report?.reduce((s, r) => s + r.expectedWait, 0) ?? 0;
-  // Effective ride time discounts wait/ride minutes by shutdown probability —
-  // rides that may not run contribute less to the day's committed time budget.
-  const totalRideTime = report?.reduce(
-    (s, r) => s + (r.expectedWait + r.onRideTime + 5) * (1 - r.shutdownChance),
-    0,
-  ) ?? 0;
   const hopUsed = (report?.filter((r) => r.slot === "hop").length ?? 0) > 0;
+  const hopTravelMinutes = hopUsed ? getHopTime(primaryPark, hopPark) : 0;
+  // Committed minutes = wait + on-ride + walking, plus one-way travel if hopping.
+  // Weather is reported as a risk, not netted out of the time budget.
+  const totalRideTime =
+    (report?.reduce((s, r) => s + r.expectedWait + r.onRideTime + r.walkMinutes, 0) ?? 0) +
+    hopTravelMinutes;
   const weatherSensitiveRides = useMemo(() => {
     if (!report) return [];
     return report.filter((r) => r.shutdownChance > 0);
@@ -366,6 +393,8 @@ export default function DayOptimizer() {
   // Difficulty bump scales with total expected shutdowns (capped at 3).
   const weatherBump = Math.min(3, Math.round(expectedShutdowns));
   const difficulty = report ? computeDifficulty(totalRideTime, hours, hopUsed, weatherBump) : null;
+  const availableMinutes = hours * 60;
+  const overBudgetMinutes = Math.max(0, totalRideTime - availableMinutes);
 
   const groupedReport = useMemo(() => {
     if (!report) return null;
@@ -373,6 +402,34 @@ export default function DayOptimizer() {
     for (const r of report) grouped[r.slot].push(r);
     return grouped;
   }, [report]);
+
+  const capacities = slotCapacities(hours);
+
+  /** Planned minutes per slot, with hop travel charged to the hop slot. */
+  const slotMinutes = useMemo(() => {
+    const totals: Record<Slot, number> = { morning: 0, afternoon: 0, night: 0, hop: 0 };
+    if (!groupedReport) return totals;
+    for (const slot of SLOT_ORDER) {
+      totals[slot] = groupedReport[slot].reduce(
+        (s, r) => s + r.expectedWait + r.onRideTime + r.walkMinutes,
+        0,
+      );
+    }
+    if (totals.hop > 0) totals.hop += hopTravelMinutes;
+    return totals;
+  }, [groupedReport, hopTravelMinutes]);
+
+  // Afternoon and the hop share the same window, so they're checked together.
+  const slotOverflow = useMemo(() => {
+    const afternoonUsed = slotMinutes.afternoon + slotMinutes.hop;
+    return {
+      morning: Math.max(0, slotMinutes.morning - capacities.morning),
+      afternoonShared: Math.max(0, afternoonUsed - capacities.afternoon),
+      afternoonUsed,
+      night: Math.max(0, slotMinutes.night - capacities.night),
+    };
+  }, [slotMinutes, capacities]);
+
 
   const renderSlotCard = (slot: Slot) => {
     const isHop = slot === "hop";
@@ -461,8 +518,16 @@ export default function DayOptimizer() {
                 <select
                   value={primaryPark}
                   onChange={(e) => {
-                    setPrimaryPark(e.target.value);
-                    setPlan((p) => ({ ...p, morning: [], afternoon: [], night: [] }));
+                    const next = e.target.value;
+                    setPrimaryPark(next);
+                    // Keep the hop park valid — it can never equal the primary park.
+                    if (hopPark === next) {
+                      const fallback = PARK_OPTIONS.find((p) => p.name !== next)?.name;
+                      if (fallback) setHopPark(fallback);
+                      setPlan((p) => ({ morning: [], afternoon: [], night: [], hop: [] }));
+                    } else {
+                      setPlan((p) => ({ ...p, morning: [], afternoon: [], night: [] }));
+                    }
                     setReport(null);
                   }}
                   className="w-full mt-1 bg-background border border-border rounded-md px-3 py-2 text-sm font-body"
@@ -695,6 +760,64 @@ export default function DayOptimizer() {
                 )}
               </div>
 
+              {/* Time budget */}
+              <div data-pdf-section className="bg-card rounded-lg border border-border overflow-hidden">
+                <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                  <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-secondary" strokeWidth={2} />
+                    Time Budget
+                  </h3>
+                  <p className="text-xs font-body text-muted-foreground mt-0.5">
+                    Waits, ride time and walking{hopUsed ? `, plus ${hopTravelMinutes}m park-to-park travel` : ""}
+                  </p>
+                </div>
+                <div className="p-4 space-y-2 text-sm font-body">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Plan needs</span>
+                    <span className="font-semibold text-foreground">
+                      {Math.floor(totalRideTime / 60)}h {totalRideTime % 60}m
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">You have</span>
+                    <span className="font-semibold text-foreground">{hours}h 0m</span>
+                  </div>
+                  {overBudgetMinutes > 0 ? (
+                    <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2 text-xs text-destructive">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" strokeWidth={2.5} />
+                      <span>
+                        This plan is <span className="font-semibold">{Math.floor(overBudgetMinutes / 60)}h {overBudgetMinutes % 60}m</span> over
+                        your time in park. Drop a ride or add hours.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground">
+                      {availableMinutes - totalRideTime}m of slack left for food, shows and shopping.
+                    </div>
+                  )}
+                  {(slotOverflow.morning > 0 || slotOverflow.afternoonShared > 0 || slotOverflow.night > 0) && (
+                    <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900 space-y-1">
+                      <div className="font-semibold inline-flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        Overpacked parts of the day
+                      </div>
+                      {slotOverflow.morning > 0 && (
+                        <div>Morning is {slotOverflow.morning}m past its {capacities.morning}m window.</div>
+                      )}
+                      {slotOverflow.afternoonShared > 0 && (
+                        <div>
+                          Afternoon{hopUsed ? " (including the park hop)" : ""} is {slotOverflow.afternoonShared}m past
+                          its {capacities.afternoon}m window.
+                        </div>
+                      )}
+                      {slotOverflow.night > 0 && (
+                        <div>Night is {slotOverflow.night}m past its {capacities.night}m window.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Weather impact */}
               {weather !== "none" && weatherSensitiveRides.length > 0 && (
                 <div data-pdf-section className="bg-card rounded-lg border border-border overflow-hidden">
@@ -755,9 +878,11 @@ export default function DayOptimizer() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="font-display text-secondary">{total}m total</div>
+                          <div className="font-display text-secondary">{total}m wait</div>
                           <div className="text-xs text-muted-foreground">
-                            {count > 0 ? `${avg}m avg wait` : "—"}
+                            {count > 0
+                              ? `${avg}m avg · ${slotMinutes[slot]}m of ${slot === "hop" ? capacities.afternoon : capacities[slot]}m used`
+                              : "—"}
                           </div>
                         </div>
                       </div>
@@ -922,6 +1047,11 @@ export default function DayOptimizer() {
                           <div data-export-text className="flex-1 min-w-0">
                             <div data-export-title className="font-semibold text-foreground leading-snug break-words inline-flex items-center gap-2 flex-wrap">
                               {r.rideName}
+                              {r.ropeDrop && (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-secondary/15 text-secondary px-2 py-0.5 text-[10px] font-body font-semibold uppercase tracking-wide">
+                                  Rope drop
+                                </span>
+                              )}
                               {r.shutdownChance > 0 && (
                                 <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 px-2 py-0.5 text-[10px] font-body font-semibold uppercase tracking-wide">
                                   <AlertTriangle className="w-3 h-3" strokeWidth={2.5} />
@@ -935,7 +1065,9 @@ export default function DayOptimizer() {
                           </div>
                           <div className="text-right shrink-0">
                             <div className="font-display text-secondary">{r.expectedWait}m</div>
-                            <div className="text-xs text-muted-foreground">+{r.onRideTime}m ride</div>
+                            <div className="text-xs text-muted-foreground">
+                              +{r.onRideTime}m ride · +{r.walkMinutes}m walk
+                            </div>
                           </div>
                         </div>
                       ))}

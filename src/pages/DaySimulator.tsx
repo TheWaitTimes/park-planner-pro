@@ -8,6 +8,7 @@ import {
   initialSimulationState,
 } from "@/simulation/simulationReducer";
 import { PARKS } from "@/data/parks";
+import { getHopTime, getWalkingTime, RAIN_CLOSURE_CHANCE } from "@/lib/parkModel";
 
 function getTimeOfDay(date: Date): "morning" | "afternoon" | "evening" {
   const hour = date.getHours();
@@ -40,21 +41,8 @@ const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
   { name: "Animal Kingdom", icon: Trees },
 ];
 
-const PARK_HOP_TIMES: Record<string, Record<string, number>> = {
-  "Magic Kingdom": { EPCOT: 25, "Hollywood Studios": 35, "Animal Kingdom": 45 },
-  EPCOT: { "Magic Kingdom": 25, "Hollywood Studios": 15, "Animal Kingdom": 30 },
-  "Hollywood Studios": { "Magic Kingdom": 35, EPCOT: 15, "Animal Kingdom": 25 },
-  "Animal Kingdom": { "Magic Kingdom": 45, EPCOT: 30, "Hollywood Studios": 25 },
-};
+// Travel / walking / weather model is shared with the Day Optimizer.
 
-function getHopTime(from: string, to: string): number {
-  return PARK_HOP_TIMES[from]?.[to] ?? 30;
-}
-
-function getWalkingTime(fromArea: string | null, toArea: string): number {
-  if (!fromArea) return 5;
-  return fromArea === toArea ? 3 : 7;
-}
 
 export default function DaySimulator({ initialPark }: { initialPark?: string } = {}) {
   const [state, dispatch] = useReducer(simulationReducer, initialSimulationState);
@@ -83,15 +71,21 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
   const currentPark = PARKS[currentParkName];
   const totalWait = state.completedRides.reduce((sum, r) => sum + r.waitTime, 0);
   const totalOnRide = state.completedRides.reduce(
-    (sum, r) => sum + (r.rideId === "rest" || r.rideId === "explore" || r.rideId === "shop" ? 0 : r.onRideTime),
+    (sum, r) => sum + (r.kind === "action" ? 0 : r.onRideTime),
     0,
   );
   const totalWalking = state.completedRides.reduce((sum, r) => sum + (r.walkingTime ?? 0), 0);
   const totalBreak = state.completedRides.reduce(
-    (sum, r) => sum + (r.rideId === "rest" || r.rideId === "explore" || r.rideId === "shop" ? r.onRideTime : 0),
+    (sum, r) => sum + (r.kind === "action" ? r.onRideTime : 0),
     0,
   );
+  const rideCount = state.completedRides.filter((r) => r.kind === "ride").length;
   const parkHopCount = Math.max(0, state.selectedParks.length - 1);
+  const distinctParkCount = new Set(state.selectedParks).size;
+  const minutesRemaining =
+    state.currentTime && state.endTime
+      ? Math.max(0, Math.round((state.endTime.getTime() - state.currentTime.getTime()) / 60000))
+      : 0;
   const timeInvalid = endHour <= startHour;
 
   // Track ride counts and last area visited (for walking-time & recommendation logic)
@@ -111,18 +105,32 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
     return null;
   }, [state.completedRides, state.currentParkIndex]);
 
+  const timeOfDay = state.currentTime ? getTimeOfDay(state.currentTime) : "morning";
+
+  // Which weather-sensitive rides are actually down for THIS storm.
+  // Re-rolled once per storm, not on every clock tick.
+  const closedRideIds = useMemo(() => {
+    if (!state.weatherActive || !currentPark) return new Set<string>();
+    const down = new Set<string>();
+    currentPark.rides.forEach((ride) => {
+      if (ride.weatherEffect === 1 && Math.random() < RAIN_CLOSURE_CHANCE) down.add(ride.id);
+    });
+    return down;
+  }, [state.weatherActive, state.weatherEventCount, currentParkName]);
+
+  // Waits are quoted per time-of-day block (and re-quoted when a storm starts/clears)
+  // so they don't jitter every time the clock moves a few minutes.
   const ridesWithWaits = useMemo(() => {
-    if (!currentPark || !state.currentTime) return [];
-    const timeOfDay = getTimeOfDay(state.currentTime);
+    if (!currentPark) return [];
     return currentPark.rides.map((ride) => {
       let [min, max] = ride.waitTimes[timeOfDay];
       min = Math.max(5, min + crowdModifier);
       max = Math.max(min, max + crowdModifier);
       const waitTime = randomWait(min, max);
-      const closed = state.weatherActive && ride.weatherEffect === 1;
+      const closed = closedRideIds.has(ride.id);
       return { ...ride, waitTime, min, closed };
     });
-  }, [state.currentTime, state.weatherActive, currentParkName, crowdModifier]);
+  }, [timeOfDay, closedRideIds, currentParkName, crowdModifier]);
 
   // Composite score: lower is better. Primary = wait time; walk penalty; ridden penalty; on-ride bonus.
   const recommendedRide = ridesWithWaits.reduce<
@@ -130,6 +138,9 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
   >((best, ride) => {
     if (ride.closed) return best;
     const walkPenalty = lastArea && ride.parkArea !== lastArea ? 6 : 0;
+    // Never recommend something that cannot finish before the park closes.
+    const walk = getWalkingTime(lastArea, ride.parkArea);
+    if (ride.waitTime + ride.onRideTime + walk > minutesRemaining) return best;
     const riddenPenalty = (ridesRiddenCount[ride.id] ?? 0) * 40;
     const rideValueBonus = ride.onRideTime * 0.4;
     const score = ride.waitTime + walkPenalty + riddenPenalty - rideValueBonus;
@@ -143,6 +154,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
     }
   }, [state.currentTime, state.status]);
 
+
   const handleStartSimulation = () => {
     if (timeInvalid) return;
     const windowMinutes = Math.max(1, (endHour - startHour) * 60);
@@ -152,7 +164,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
       const randomMinute = Math.floor(Math.random() * windowMinutes);
       weatherStartTime = new Date(`2026-01-21T${String(startHour).padStart(2, "0")}:00:00`);
       weatherStartTime.setMinutes(weatherStartTime.getMinutes() + randomMinute);
-      const clearMinutes = 60 + Math.floor(Math.random() * 241);
+      const clearMinutes = 45 + Math.floor(Math.random() * 120);
       weatherClearTime = new Date(weatherStartTime);
       weatherClearTime.setMinutes(weatherClearTime.getMinutes() + clearMinutes);
     }
@@ -164,6 +176,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
         endTime: new Date(`2026-01-21T${String(endHour).padStart(2, "0")}:00:00`),
         weatherStartTime,
         weatherClearTime,
+        weatherChance,
       },
     });
   };
@@ -276,7 +289,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
       doc.setFontSize(10);
       doc.setTextColor(40);
       rides.forEach((ride) => {
-        const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+        const isAction = ride.kind === "action";
         const totalMin = ride.waitTime + ride.onRideTime;
         const detail = isAction ? `${totalMin} min` : `${ride.waitTime}m wait · ${ride.onRideTime}m ride`;
         const time = `${formatTime(ride.timeStarted)} – ${formatTime(ride.timeFinished)}`;
@@ -303,7 +316,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
     const lastEnd =
       state.completedRides[state.completedRides.length - 1]?.timeFinished ?? state.currentTime;
     const rideCount = state.completedRides.filter(
-      (r) => r.rideId !== "rest" && r.rideId !== "explore" && r.rideId !== "shop",
+      (r) => r.kind === "ride",
     ).length;
 
     // Header
@@ -351,7 +364,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
       ["Walking Between Rides", `${totalWalking} min`],
       ["Park-Hop Travel", `${state.totalTravelMinutes} min`],
       ["Breaks / Exploring", `${totalBreak} min`],
-      ["Park Hops", `${parkHopCount}`],
+      ["Park Hops", `${parkHopCount} (${distinctParkCount} distinct)`],
       ["Weather Events", `${state.weatherEventCount}`],
       ["Ended At", formatTime(state.currentTime) || "—"],
     ];
@@ -396,7 +409,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           </div>
           <div className="bg-card rounded-lg p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Total Rides</div>
-            <div className="text-4xl font-display text-secondary">{state.completedRides.filter(r => r.rideId !== "rest" && r.rideId !== "explore" && r.rideId !== "shop").length}</div>
+            <div className="text-4xl font-display text-secondary">{rideCount}</div>
           </div>
           <div className="bg-card rounded-lg p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Ended At</div>
@@ -417,6 +430,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Hops · Weather</div>
             <div className="text-2xl font-display text-foreground">{parkHopCount} · {state.weatherEventCount}</div>
+            <div className="text-xs font-body text-muted-foreground mt-1">{distinctParkCount} distinct park{distinctParkCount !== 1 ? "s" : ""}</div>
           </div>
         </div>
 
@@ -426,7 +440,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
             <h3 className="text-2xl text-secondary mb-2">{park}</h3>
             <div className="space-y-1">
               {rides.map((ride, i) => {
-                const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+                const isAction = ride.kind === "action";
                 const totalMin = ride.waitTime + ride.onRideTime;
                 return (
                   <div key={i} className={`flex items-center gap-2 text-sm font-body rounded px-3 py-2 border ${isAction ? "bg-secondary/5 border-secondary/30" : "bg-card border-border"}`}>
@@ -447,7 +461,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
         <div className="mt-6 flex flex-wrap gap-3">
           <button
             className="bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"
-            onClick={() => window.location.reload()}
+            onClick={() => dispatch({ type: "RESET_SIMULATION" })}
           >
             Start New Day
           </button>
@@ -580,7 +594,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
             Bad Weather until: {formatTime(state.weatherClearTime)}
           </div>
           <div className="text-sm font-body mt-1">
-            Closed rides: {currentPark.rides.filter((r) => r.weatherEffect === 1).map((r) => r.name).join(", ")}
+            Closed rides: {ridesWithWaits.filter((r) => r.closed).map((r) => r.name).join(", ") || "None — every attraction is still running"}
           </div>
         </div>
       )}
@@ -597,6 +611,9 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                 const riddenCount = ridesRiddenCount[ride.id] ?? 0;
                 const isRecommended = ride.id === recommendedRide?.id;
                 const disabled = ride.closed;
+                const walk = getWalkingTime(lastArea, ride.parkArea);
+                const wontFinish =
+                  !disabled && ride.waitTime + ride.onRideTime + walk > minutesRemaining;
                 return (
                   <button
                     key={ride.id}
@@ -613,21 +630,28 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                     className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
                       disabled
                         ? "border-border bg-muted/40 text-muted-foreground cursor-not-allowed opacity-60"
-                        : isRecommended
-                          ? "border-secondary bg-secondary/10 shadow-md"
-                          : riddenCount > 0
-                            ? "border-border bg-card opacity-70 hover:opacity-100 hover:border-secondary/40"
-                            : "border-border bg-card hover:border-secondary/40"
+                        : wontFinish
+                          ? "border-destructive/40 bg-destructive/5 hover:border-destructive/60"
+                          : isRecommended
+                            ? "border-secondary bg-secondary/10 shadow-md"
+                            : riddenCount > 0
+                              ? "border-border bg-card opacity-70 hover:opacity-100 hover:border-secondary/40"
+                              : "border-border bg-card hover:border-secondary/40"
                     }`}
                   >
                     <span className="text-muted-foreground">{ride.parkArea}</span>
                     <span className="mx-2 text-muted-foreground">—</span>
-                    <span className={`font-semibold ${isRecommended ? "text-secondary-foreground" : "text-foreground"}`}>
+                    <span className={`font-semibold ${isRecommended && !wontFinish ? "text-secondary-foreground" : "text-foreground"}`}>
                       {ride.name}
                     </span>
                     {riddenCount > 0 && !disabled && (
                       <span className="ml-2 text-[11px] font-body text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
                         Ridden ×{riddenCount}
+                      </span>
+                    )}
+                    {wontFinish && (
+                      <span className="ml-2 text-[11px] font-body text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
+                        Won't finish before close
                       </span>
                     )}
                     <span className="float-right text-muted-foreground inline-flex items-center gap-1">
@@ -639,12 +663,13 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                       ) : (
                         <>
                           {ride.waitTime}m wait · {ride.onRideTime}m ride
-                          {isRecommended && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
+                          {isRecommended && !wontFinish && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
                         </>
                       )}
                     </span>
                   </button>
                 );
+
               })}
           </div>
 
@@ -721,7 +746,9 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
               <dt className="text-muted-foreground">Breaks / explore</dt>
               <dd className="text-right font-semibold text-foreground">{totalBreak} min</dd>
               <dt className="text-muted-foreground">Park hops</dt>
-              <dd className="text-right font-semibold text-foreground">{parkHopCount}</dd>
+              <dd className="text-right font-semibold text-foreground">
+                {parkHopCount} ({distinctParkCount} park{distinctParkCount !== 1 ? "s" : ""})
+              </dd>
               <dt className="text-muted-foreground">Weather events</dt>
               <dd className="text-right font-semibold text-foreground">
                 {state.weatherEventCount}{state.weatherActive ? " (active)" : ""}
@@ -754,7 +781,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                 <div key={key}>
                   <div className="font-semibold text-secondary mb-1">{park}</div>
                   {rides.map((ride, i) => {
-                    const isAction = ride.rideId === "rest" || ride.rideId === "explore" || ride.rideId === "shop";
+                    const isAction = ride.kind === "action";
                     const totalMin = ride.waitTime + ride.onRideTime;
                     return (
                       <div key={i} className={`ml-2 ${isAction ? "text-secondary" : "text-muted-foreground"}`}>
@@ -920,6 +947,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                     dispatch({
                       type: "COMPLETE_RIDE",
                       payload: {
+                        kind: "action",
                         rideId: pendingAction.id,
                         rideName: pendingAction.name,
                         waitTime: 0,
