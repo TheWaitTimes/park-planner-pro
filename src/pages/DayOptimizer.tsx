@@ -518,8 +518,16 @@ export default function DayOptimizer() {
                 <select
                   value={primaryPark}
                   onChange={(e) => {
-                    setPrimaryPark(e.target.value);
-                    setPlan((p) => ({ ...p, morning: [], afternoon: [], night: [] }));
+                    const next = e.target.value;
+                    setPrimaryPark(next);
+                    // Keep the hop park valid — it can never equal the primary park.
+                    if (hopPark === next) {
+                      const fallback = PARK_OPTIONS.find((p) => p.name !== next)?.name;
+                      if (fallback) setHopPark(fallback);
+                      setPlan((p) => ({ morning: [], afternoon: [], night: [], hop: [] }));
+                    } else {
+                      setPlan((p) => ({ ...p, morning: [], afternoon: [], night: [] }));
+                    }
                     setReport(null);
                   }}
                   className="w-full mt-1 bg-background border border-border rounded-md px-3 py-2 text-sm font-body"
