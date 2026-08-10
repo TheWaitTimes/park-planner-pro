@@ -344,21 +344,27 @@ export default function DayOptimizer() {
     const rows: ReportRow[] = [];
     const shutdown = shutdownChance;
     for (const slot of SLOT_ORDER) {
-      for (const planned of plan[slot]) {
+      let previousArea: string | null = null;
+      plan[slot].forEach((planned, index) => {
         const parkRides = PARKS[planned.parkName]?.rides ?? [];
         const ride = parkRides.find((r) => r.id === planned.rideId);
-        if (!ride) continue;
+        if (!ride) return;
+        // Rope drop only applies to the first attraction of a morning plan.
+        const ropeDrop = slot === "morning" && index === 0;
         rows.push({
           rideId: ride.id,
           rideName: ride.name,
           parkArea: ride.parkArea,
           parkName: planned.parkName,
           slot,
-          expectedWait: computeExpectedWait(ride, slot, month, crowd),
+          expectedWait: computeExpectedWait(ride, slot, month, crowd, ropeDrop),
           onRideTime: ride.onRideTime,
+          walkMinutes: getWalkingTime(previousArea, ride.parkArea),
+          ropeDrop,
           shutdownChance: ride.weatherEffect === 1 ? shutdown : 0,
         });
-      }
+        previousArea = ride.parkArea;
+      });
     }
     setReport(rows);
   }, [plan, month, crowd, shutdownChance]);
@@ -371,13 +377,13 @@ export default function DayOptimizer() {
 
   const totalRides = report?.length ?? 0;
   const totalWait = report?.reduce((s, r) => s + r.expectedWait, 0) ?? 0;
-  // Effective ride time discounts wait/ride minutes by shutdown probability —
-  // rides that may not run contribute less to the day's committed time budget.
-  const totalRideTime = report?.reduce(
-    (s, r) => s + (r.expectedWait + r.onRideTime + 5) * (1 - r.shutdownChance),
-    0,
-  ) ?? 0;
   const hopUsed = (report?.filter((r) => r.slot === "hop").length ?? 0) > 0;
+  const hopTravelMinutes = hopUsed ? getHopTime(primaryPark, hopPark) : 0;
+  // Committed minutes = wait + on-ride + walking, plus one-way travel if hopping.
+  // Weather is reported as a risk, not netted out of the time budget.
+  const totalRideTime =
+    (report?.reduce((s, r) => s + r.expectedWait + r.onRideTime + r.walkMinutes, 0) ?? 0) +
+    hopTravelMinutes;
   const weatherSensitiveRides = useMemo(() => {
     if (!report) return [];
     return report.filter((r) => r.shutdownChance > 0);
@@ -387,6 +393,8 @@ export default function DayOptimizer() {
   // Difficulty bump scales with total expected shutdowns (capped at 3).
   const weatherBump = Math.min(3, Math.round(expectedShutdowns));
   const difficulty = report ? computeDifficulty(totalRideTime, hours, hopUsed, weatherBump) : null;
+  const availableMinutes = hours * 60;
+  const overBudgetMinutes = Math.max(0, totalRideTime - availableMinutes);
 
   const groupedReport = useMemo(() => {
     if (!report) return null;
@@ -394,6 +402,34 @@ export default function DayOptimizer() {
     for (const r of report) grouped[r.slot].push(r);
     return grouped;
   }, [report]);
+
+  const capacities = slotCapacities(hours);
+
+  /** Planned minutes per slot, with hop travel charged to the hop slot. */
+  const slotMinutes = useMemo(() => {
+    const totals: Record<Slot, number> = { morning: 0, afternoon: 0, night: 0, hop: 0 };
+    if (!groupedReport) return totals;
+    for (const slot of SLOT_ORDER) {
+      totals[slot] = groupedReport[slot].reduce(
+        (s, r) => s + r.expectedWait + r.onRideTime + r.walkMinutes,
+        0,
+      );
+    }
+    if (totals.hop > 0) totals.hop += hopTravelMinutes;
+    return totals;
+  }, [groupedReport, hopTravelMinutes]);
+
+  // Afternoon and the hop share the same window, so they're checked together.
+  const slotOverflow = useMemo(() => {
+    const afternoonUsed = slotMinutes.afternoon + slotMinutes.hop;
+    return {
+      morning: Math.max(0, slotMinutes.morning - capacities.morning),
+      afternoonShared: Math.max(0, afternoonUsed - capacities.afternoon),
+      afternoonUsed,
+      night: Math.max(0, slotMinutes.night - capacities.night),
+    };
+  }, [slotMinutes, capacities]);
+
 
   const renderSlotCard = (slot: Slot) => {
     const isHop = slot === "hop";
