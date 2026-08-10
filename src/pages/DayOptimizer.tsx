@@ -4,7 +4,7 @@ import jsPDF from "jspdf";
 import {
   Sun, CloudSun, Moon, Shuffle, Castle, Globe, Clapperboard, Trees,
   BarChart3, TrendingUp, Layers, Play, Download, Ticket, CloudRain,
-  AlertTriangle, Info,
+  AlertTriangle, Info, Clock,
   type LucideIcon,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -760,6 +760,64 @@ export default function DayOptimizer() {
                 )}
               </div>
 
+              {/* Time budget */}
+              <div data-pdf-section className="bg-card rounded-lg border border-border overflow-hidden">
+                <div className="bg-muted/40 px-4 py-2.5 border-b border-border">
+                  <h3 className="font-display text-sm font-semibold text-foreground inline-flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-secondary" strokeWidth={2} />
+                    Time Budget
+                  </h3>
+                  <p className="text-xs font-body text-muted-foreground mt-0.5">
+                    Waits, ride time and walking{hopUsed ? `, plus ${hopTravelMinutes}m park-to-park travel` : ""}
+                  </p>
+                </div>
+                <div className="p-4 space-y-2 text-sm font-body">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Plan needs</span>
+                    <span className="font-semibold text-foreground">
+                      {Math.floor(totalRideTime / 60)}h {totalRideTime % 60}m
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">You have</span>
+                    <span className="font-semibold text-foreground">{hours}h 0m</span>
+                  </div>
+                  {overBudgetMinutes > 0 ? (
+                    <div className="flex items-start gap-2 rounded-md bg-destructive/10 border border-destructive/30 px-3 py-2 text-xs text-destructive">
+                      <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" strokeWidth={2.5} />
+                      <span>
+                        This plan is <span className="font-semibold">{Math.floor(overBudgetMinutes / 60)}h {overBudgetMinutes % 60}m</span> over
+                        your time in park. Drop a ride or add hours.
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-muted-foreground">
+                      {availableMinutes - totalRideTime}m of slack left for food, shows and shopping.
+                    </div>
+                  )}
+                  {(slotOverflow.morning > 0 || slotOverflow.afternoonShared > 0 || slotOverflow.night > 0) && (
+                    <div className="rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-900 space-y-1">
+                      <div className="font-semibold inline-flex items-center gap-1.5">
+                        <AlertTriangle className="w-3.5 h-3.5" strokeWidth={2.5} />
+                        Overpacked parts of the day
+                      </div>
+                      {slotOverflow.morning > 0 && (
+                        <div>Morning is {slotOverflow.morning}m past its {capacities.morning}m window.</div>
+                      )}
+                      {slotOverflow.afternoonShared > 0 && (
+                        <div>
+                          Afternoon{hopUsed ? " (including the park hop)" : ""} is {slotOverflow.afternoonShared}m past
+                          its {capacities.afternoon}m window.
+                        </div>
+                      )}
+                      {slotOverflow.night > 0 && (
+                        <div>Night is {slotOverflow.night}m past its {capacities.night}m window.</div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
               {/* Weather impact */}
               {weather !== "none" && weatherSensitiveRides.length > 0 && (
                 <div data-pdf-section className="bg-card rounded-lg border border-border overflow-hidden">
@@ -820,9 +878,11 @@ export default function DayOptimizer() {
                           </div>
                         </div>
                         <div className="text-right shrink-0">
-                          <div className="font-display text-secondary">{total}m total</div>
+                          <div className="font-display text-secondary">{total}m wait</div>
                           <div className="text-xs text-muted-foreground">
-                            {count > 0 ? `${avg}m avg wait` : "—"}
+                            {count > 0
+                              ? `${avg}m avg · ${slotMinutes[slot]}m of ${slot === "hop" ? capacities.afternoon : capacities[slot]}m used`
+                              : "—"}
                           </div>
                         </div>
                       </div>
