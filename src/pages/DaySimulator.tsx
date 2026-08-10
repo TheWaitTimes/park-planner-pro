@@ -164,7 +164,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
       const randomMinute = Math.floor(Math.random() * windowMinutes);
       weatherStartTime = new Date(`2026-01-21T${String(startHour).padStart(2, "0")}:00:00`);
       weatherStartTime.setMinutes(weatherStartTime.getMinutes() + randomMinute);
-      const clearMinutes = 60 + Math.floor(Math.random() * 241);
+      const clearMinutes = 45 + Math.floor(Math.random() * 120);
       weatherClearTime = new Date(weatherStartTime);
       weatherClearTime.setMinutes(weatherClearTime.getMinutes() + clearMinutes);
     }
@@ -176,6 +176,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
         endTime: new Date(`2026-01-21T${String(endHour).padStart(2, "0")}:00:00`),
         weatherStartTime,
         weatherClearTime,
+        weatherChance,
       },
     });
   };
