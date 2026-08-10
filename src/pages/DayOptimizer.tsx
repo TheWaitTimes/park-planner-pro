@@ -68,13 +68,9 @@ const MONTH_MULTIPLIER: Record<string, number> = {
 
 const CROWD_MULTIPLIER = { Light: 0.75, Moderate: 1.0, Heavy: 1.35 } as const;
 
-// Slot-of-day base wait multiplier (afternoon is busiest)
-const SLOT_WAIT_MULTIPLIER: Record<Slot, number> = {
-  morning: 0.7,
-  afternoon: 1.2,
-  night: 0.9,
-  hop: 1.1,
-};
+// Note: no separate slot multiplier — each ride's morning/afternoon/evening wait
+// ranges in parks.ts already encode the time-of-day rhythm.
+
 
 const PARK_OPTIONS: { name: string; icon: LucideIcon }[] = [
   { name: "Magic Kingdom", icon: Castle },
@@ -98,6 +94,9 @@ interface ReportRow {
   slot: Slot;
   expectedWait: number;
   onRideTime: number;
+  /** Walking minutes to reach this ride from the previous one in the same slot. */
+  walkMinutes: number;
+  ropeDrop: boolean;
   shutdownChance: number; // 0..1 probability the ride may not run due to weather
 }
 
