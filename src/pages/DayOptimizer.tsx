@@ -30,6 +30,7 @@ const WEATHER_SHUTDOWN_CHANCE: Record<Weather, number> = {
   high: 0.7,
 };
 import { PARKS, type Ride } from "@/data/parks";
+import { capWait, getHopTime, getWalkingTime, ROPE_DROP_MULTIPLIER } from "@/lib/parkModel";
 
 type Slot = "morning" | "afternoon" | "night" | "hop";
 
