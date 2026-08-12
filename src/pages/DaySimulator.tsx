@@ -359,7 +359,9 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
   if (state.status === "ended") {
     return (
       <div className="max-w-4xl mx-auto">
+        <div ref={summaryRef} className="bg-background p-4 rounded-lg">
         <h1 className="text-3xl md:text-4xl text-foreground mb-6 font-semibold tracking-tight">Day Summary</h1>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-card rounded-lg p-5 border border-border col-span-2">
             <div className="text-muted-foreground text-sm font-body">Parks Visited</div>
