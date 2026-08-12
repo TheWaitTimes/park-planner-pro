@@ -1,6 +1,6 @@
 import { useReducer, useState, useEffect, useMemo } from "react";
 import {
-  Castle, Globe, Clapperboard, Trees, CloudRain, Star, Download, type LucideIcon,
+  Castle, Globe, Clapperboard, Trees, CloudRain, Download, type LucideIcon,
 } from "lucide-react";
 import jsPDF from "jspdf";
 import {
@@ -132,21 +132,6 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
     });
   }, [timeOfDay, closedRideIds, currentParkName, crowdModifier, state.currentTime]);
 
-  // Composite score: lower is better. Primary = wait time; walk penalty; ridden penalty; on-ride bonus.
-  const recommendedRide = ridesWithWaits.reduce<
-    { ride: typeof ridesWithWaits[0]; score: number } | null
-  >((best, ride) => {
-    if (ride.closed) return best;
-    const walkPenalty = lastArea && ride.parkArea !== lastArea ? 6 : 0;
-    // Never recommend something that cannot finish before the park closes.
-    const walk = getWalkingTime(lastArea, ride.parkArea);
-    if (ride.waitTime + ride.onRideTime + walk > minutesRemaining) return best;
-    const riddenPenalty = (ridesRiddenCount[ride.id] ?? 0) * 40;
-    const rideValueBonus = ride.onRideTime * 0.4;
-    const score = ride.waitTime + walkPenalty + riddenPenalty - rideValueBonus;
-    if (!best || score < best.score) return { ride, score };
-    return best;
-  }, null)?.ride;
 
   useEffect(() => {
     if (state.status === "active") {
@@ -609,7 +594,6 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
               .sort((a, b) => a.parkArea.localeCompare(b.parkArea))
               .map((ride) => {
                 const riddenCount = ridesRiddenCount[ride.id] ?? 0;
-                const isRecommended = ride.id === recommendedRide?.id;
                 const disabled = ride.closed;
                 const walk = getWalkingTime(lastArea, ride.parkArea);
                 const wontFinish =
@@ -632,16 +616,14 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                         ? "border-border bg-muted/40 text-muted-foreground cursor-not-allowed opacity-60"
                         : wontFinish
                           ? "border-destructive/40 bg-destructive/5 hover:border-destructive/60"
-                          : isRecommended
-                            ? "border-secondary bg-secondary/10 shadow-md"
-                            : riddenCount > 0
-                              ? "border-border bg-card opacity-70 hover:opacity-100 hover:border-secondary/40"
-                              : "border-border bg-card hover:border-secondary/40"
+                          : riddenCount > 0
+                            ? "border-border bg-card opacity-70 hover:opacity-100 hover:border-secondary/40"
+                            : "border-border bg-card hover:border-secondary/40"
                     }`}
                   >
                     <span className="text-muted-foreground">{ride.parkArea}</span>
                     <span className="mx-2 text-muted-foreground">—</span>
-                    <span className={`font-semibold ${isRecommended && !wontFinish ? "text-secondary-foreground" : "text-foreground"}`}>
+                    <span className="font-semibold text-foreground">
                       {ride.name}
                     </span>
                     {riddenCount > 0 && !disabled && (
@@ -663,7 +645,6 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                       ) : (
                         <>
                           {ride.waitTime}m wait · {ride.onRideTime}m ride
-                          {isRecommended && !wontFinish && <Star className="w-3.5 h-3.5 text-secondary fill-secondary" />}
                         </>
                       )}
                     </span>
