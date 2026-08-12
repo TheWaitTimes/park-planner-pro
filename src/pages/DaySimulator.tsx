@@ -1,8 +1,9 @@
-import { useReducer, useState, useEffect, useMemo } from "react";
+import { useReducer, useState, useEffect, useMemo, useRef } from "react";
 import {
   Castle, Globe, Clapperboard, Trees, CloudRain, Download, type LucideIcon,
 } from "lucide-react";
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import {
   simulationReducer,
   initialSimulationState,
