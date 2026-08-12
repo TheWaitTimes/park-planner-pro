@@ -118,8 +118,8 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
     return down;
   }, [state.weatherActive, state.weatherEventCount, currentParkName]);
 
-  // Waits are quoted per time-of-day block (and re-quoted when a storm starts/clears)
-  // so they don't jitter every time the clock moves a few minutes.
+  // Waits are re-quoted every time the clock advances, so posted times shift
+  // as the day moves along.
   const ridesWithWaits = useMemo(() => {
     if (!currentPark) return [];
     return currentPark.rides.map((ride) => {
@@ -130,7 +130,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
       const closed = closedRideIds.has(ride.id);
       return { ...ride, waitTime, min, closed };
     });
-  }, [timeOfDay, closedRideIds, currentParkName, crowdModifier]);
+  }, [timeOfDay, closedRideIds, currentParkName, crowdModifier, state.currentTime]);
 
   // Composite score: lower is better. Primary = wait time; walk penalty; ridden penalty; on-ride bonus.
   const recommendedRide = ridesWithWaits.reduce<
