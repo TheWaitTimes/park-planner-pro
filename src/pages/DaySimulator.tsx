@@ -293,6 +293,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
   };
 
   const [exportingPDF, setExportingPDF] = useState(false);
+  const summaryRef = useRef<HTMLDivElement>(null);
 
   const handleExportSummaryScreenshot = async () => {
     const node = summaryRef.current;
