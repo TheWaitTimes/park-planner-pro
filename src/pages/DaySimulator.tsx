@@ -291,93 +291,66 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
     doc.save("disney-itinerary.pdf");
   };
 
-  const handleExportSummaryPDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 18;
+  const [exportingPDF, setExportingPDF] = useState(false);
 
-    const firstStart = state.completedRides[0]?.timeStarted ?? state.currentTime;
-    const lastEnd =
-      state.completedRides[state.completedRides.length - 1]?.timeFinished ?? state.currentTime;
-    const rideCount = state.completedRides.filter(
-      (r) => r.kind === "ride",
-    ).length;
+  const handleExportSummaryScreenshot = async () => {
+    const node = summaryRef.current;
+    if (!node) return;
+    setExportingPDF(true);
+    try {
+      await document.fonts.ready;
+      const bg = getComputedStyle(document.body).backgroundColor || "#ffffff";
+      const canvas = await html2canvas(node, {
+        backgroundColor: bg,
+        scale: 2,
+        useCORS: true,
+        logging: false,
+      });
+      const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 24;
+      const imgW = pageW - margin * 2;
+      const imgH = (canvas.height * imgW) / canvas.width;
+      const imgData = canvas.toDataURL("image/png");
+      const usableH = pageH - margin * 2;
 
-    // Header
-    doc.setFillColor(20, 30, 70);
-    doc.rect(0, 0, pageWidth, 34, "F");
-    doc.setTextColor(255);
-    doc.setFontSize(20);
-    doc.text("Day Summary", margin, 16);
-    doc.setFontSize(11);
-    doc.setTextColor(200);
-    doc.text("Theme Park Data Hub", margin, 26);
-
-    // Parks strip
-    let y = 48;
-    doc.setTextColor(110);
-    doc.setFontSize(10);
-    doc.text("PARKS VISITED", margin, y);
-    doc.setTextColor(30);
-    doc.setFontSize(14);
-    y += 8;
-    const parks = state.selectedParks.join("  →  ") || "—";
-    doc.text(doc.splitTextToSize(parks, pageWidth - margin * 2), margin, y);
-    y += 14;
-
-    const window =
-      firstStart && lastEnd ? `${formatTime(firstStart)} – ${formatTime(lastEnd)}` : "—";
-    doc.setTextColor(110);
-    doc.setFontSize(10);
-    doc.text("DAY WINDOW", margin, y);
-    doc.setTextColor(30);
-    doc.setFontSize(14);
-    y += 8;
-    doc.text(window, margin, y);
-    y += 16;
-
-    // Stat grid
-    doc.setDrawColor(220);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 10;
-
-    const stats: [string, string][] = [
-      ["Total Rides", `${rideCount}`],
-      ["Wait Time", `${totalWait} min`],
-      ["On-Ride Time", `${totalOnRide} min`],
-      ["Walking Between Rides", `${totalWalking} min`],
-      ["Park-Hop Travel", `${state.totalTravelMinutes} min`],
-      ["Breaks / Exploring", `${totalBreak} min`],
-      ["Park Hops", `${parkHopCount} (${distinctParkCount} distinct)`],
-      ["Weather Events", `${state.weatherEventCount}`],
-      ["Ended At", formatTime(state.currentTime) || "—"],
-    ];
-
-    const rowH = 12;
-    stats.forEach(([label, value]) => {
-      doc.setTextColor(80);
-      doc.setFontSize(11);
-      doc.text(label, margin, y);
-      doc.setTextColor(20, 30, 70);
-      doc.setFontSize(13);
-      doc.text(value, pageWidth - margin, y, { align: "right" });
-      y += rowH;
-      doc.setDrawColor(235);
-      doc.line(margin, y - 4, pageWidth - margin, y - 4);
-    });
-
-    doc.setFontSize(9);
-    doc.setTextColor(140);
-    doc.text(
-      `Generated ${new Date().toLocaleString([], { dateStyle: "medium", timeStyle: "short" })}`,
-      pageWidth / 2,
-      pageHeight - 14,
-      { align: "center" },
-    );
-
-    doc.save("day-summary.pdf");
+      if (imgH <= usableH) {
+        doc.addImage(imgData, "PNG", margin, margin, imgW, imgH);
+      } else {
+        // Slice the tall screenshot across pages.
+        const pxPerPage = (usableH * canvas.width) / imgW;
+        let offset = 0;
+        let first = true;
+        while (offset < canvas.height) {
+          const sliceH = Math.min(pxPerPage, canvas.height - offset);
+          const slice = document.createElement("canvas");
+          slice.width = canvas.width;
+          slice.height = sliceH;
+          const ctx = slice.getContext("2d");
+          if (!ctx) break;
+          ctx.fillStyle = bg;
+          ctx.fillRect(0, 0, slice.width, slice.height);
+          ctx.drawImage(canvas, 0, offset, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+          if (!first) doc.addPage();
+          doc.addImage(
+            slice.toDataURL("image/png"),
+            "PNG",
+            margin,
+            margin,
+            imgW,
+            (sliceH * imgW) / canvas.width,
+          );
+          first = false;
+          offset += sliceH;
+        }
+      }
+      doc.save("day-summary.pdf");
+    } finally {
+      setExportingPDF(false);
+    }
   };
+
 
 
 
