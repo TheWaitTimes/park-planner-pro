@@ -218,27 +218,28 @@ export default function Rankings() {
               style={{ width: `${((pairIdx + 1) / pairs.length) * 100}%` }}
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 md:gap-4 items-stretch">
             <button
               onClick={() => handleChoice("left")}
-              className="bg-card border-2 border-border hover:border-secondary rounded-xl p-6 text-center transition-all hover:shadow-lg cursor-pointer"
+              className="bg-card border-2 border-border hover:border-secondary rounded-xl p-4 sm:p-6 text-center transition-all hover:shadow-lg cursor-pointer min-h-[88px]"
             >
-              <h3 className="font-display text-2xl text-foreground mb-2">{filteredItems[currentPair[0]].name}</h3>
+              <h3 className="font-display text-lg sm:text-2xl text-foreground mb-2 break-words">{filteredItems[currentPair[0]].name}</h3>
               <p className="text-sm text-muted-foreground font-body">{filteredItems[currentPair[0]].parkLocation}</p>
               <p className="text-sm text-muted-foreground font-body">{filteredItems[currentPair[0]].parkArea}</p>
             </button>
             <div className="flex items-center justify-center">
-              <span className="font-display text-3xl text-muted-foreground">VS</span>
+              <span className="font-display text-xl md:text-3xl text-muted-foreground">VS</span>
             </div>
             <button
               onClick={() => handleChoice("right")}
-              className="bg-card border-2 border-border hover:border-secondary rounded-xl p-6 text-center transition-all hover:shadow-lg cursor-pointer"
+              className="bg-card border-2 border-border hover:border-secondary rounded-xl p-4 sm:p-6 text-center transition-all hover:shadow-lg cursor-pointer min-h-[88px]"
             >
-              <h3 className="font-display text-2xl text-foreground mb-2">{filteredItems[currentPair[1]].name}</h3>
+              <h3 className="font-display text-lg sm:text-2xl text-foreground mb-2 break-words">{filteredItems[currentPair[1]].name}</h3>
               <p className="text-sm text-muted-foreground font-body">{filteredItems[currentPair[1]].parkLocation}</p>
               <p className="text-sm text-muted-foreground font-body">{filteredItems[currentPair[1]].parkArea}</p>
             </button>
           </div>
+
         </div>
       )}
 
