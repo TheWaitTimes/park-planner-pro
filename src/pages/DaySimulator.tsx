@@ -364,37 +364,38 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
         <div ref={summaryRef} className="bg-background p-4 rounded-lg">
         <h1 className="text-3xl md:text-4xl text-foreground mb-6 font-semibold tracking-tight">Day Summary</h1>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-card rounded-lg p-5 border border-border col-span-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
+          <div className="bg-card rounded-lg p-4 sm:p-5 border border-border col-span-2">
             <div className="text-muted-foreground text-sm font-body">Parks Visited</div>
-            <div className="text-2xl font-display text-foreground">{state.selectedParks.join(" → ")}</div>
+            <div className="text-lg sm:text-2xl font-display text-foreground break-words">{state.selectedParks.join(" → ")}</div>
           </div>
-          <div className="bg-card rounded-lg p-5 border border-border">
+          <div className="bg-card rounded-lg p-4 sm:p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Total Rides</div>
-            <div className="text-4xl font-display text-secondary">{rideCount}</div>
+            <div className="text-3xl sm:text-4xl font-display text-secondary">{rideCount}</div>
           </div>
-          <div className="bg-card rounded-lg p-5 border border-border">
+          <div className="bg-card rounded-lg p-4 sm:p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Ended At</div>
-            <div className="text-4xl font-display text-secondary">{formatTime(state.currentTime)}</div>
+            <div className="text-2xl sm:text-4xl font-display text-secondary">{formatTime(state.currentTime)}</div>
           </div>
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Wait</div>
-            <div className="text-2xl font-display text-foreground">{totalWait} min</div>
+            <div className="text-xl sm:text-2xl font-display text-foreground">{totalWait} min</div>
           </div>
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">On-Ride</div>
-            <div className="text-2xl font-display text-foreground">{totalOnRide} min</div>
+            <div className="text-xl sm:text-2xl font-display text-foreground">{totalOnRide} min</div>
           </div>
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Walking / Travel</div>
-            <div className="text-2xl font-display text-foreground">{totalWalking + state.totalTravelMinutes} min</div>
+            <div className="text-xl sm:text-2xl font-display text-foreground">{totalWalking + state.totalTravelMinutes} min</div>
           </div>
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Hops · Weather</div>
-            <div className="text-2xl font-display text-foreground">{parkHopCount} · {state.weatherEventCount}</div>
+            <div className="text-xl sm:text-2xl font-display text-foreground">{parkHopCount} · {state.weatherEventCount}</div>
             <div className="text-xs font-body text-muted-foreground mt-1">{distinctParkCount} distinct park{distinctParkCount !== 1 ? "s" : ""}</div>
           </div>
         </div>
+
 
         <h2 className="text-3xl text-foreground mb-4">Timeline</h2>
         {groupedVisits.map(({ key, park, rides }) => (
