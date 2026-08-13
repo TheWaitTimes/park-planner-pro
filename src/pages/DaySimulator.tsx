@@ -582,7 +582,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                         parkArea: ride.parkArea,
                       })
                     }
-                    className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
+                    className={`w-full text-left px-3 sm:px-4 py-3 min-h-[56px] rounded-lg border transition font-body text-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 ${
                       disabled
                         ? "border-border bg-muted/40 text-muted-foreground cursor-not-allowed opacity-60"
                         : wontFinish
@@ -592,22 +592,25 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                             : "border-border bg-card hover:border-secondary/40"
                     }`}
                   >
-                    <span className="text-muted-foreground">{ride.parkArea}</span>
-                    <span className="mx-2 text-muted-foreground">—</span>
-                    <span className="font-semibold text-foreground">
-                      {ride.name}
+                    <span className="min-w-0 flex-1">
+                      <span className="font-semibold text-foreground block sm:inline break-words">
+                        {ride.name}
+                      </span>
+                      <span className="text-muted-foreground text-xs sm:text-sm block sm:inline sm:before:content-['·'] sm:before:mx-2">
+                        {ride.parkArea}
+                      </span>
+                      {riddenCount > 0 && !disabled && (
+                        <span className="ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block text-[11px] font-body text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          Ridden ×{riddenCount}
+                        </span>
+                      )}
+                      {wontFinish && (
+                        <span className="ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block text-[11px] font-body text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
+                          Won't finish before close
+                        </span>
+                      )}
                     </span>
-                    {riddenCount > 0 && !disabled && (
-                      <span className="ml-2 text-[11px] font-body text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                        Ridden ×{riddenCount}
-                      </span>
-                    )}
-                    {wontFinish && (
-                      <span className="ml-2 text-[11px] font-body text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
-                        Won't finish before close
-                      </span>
-                    )}
-                    <span className="float-right text-muted-foreground inline-flex items-center gap-1">
+                    <span className="text-muted-foreground text-xs sm:text-sm shrink-0 sm:text-right">
                       {disabled ? (
                         <span className="inline-flex items-center gap-1 text-destructive">
                           <CloudRain className="w-3.5 h-3.5" /> Closed
@@ -620,6 +623,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                       )}
                     </span>
                   </button>
+
                 );
 
               })}
