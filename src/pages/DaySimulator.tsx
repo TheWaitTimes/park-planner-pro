@@ -423,9 +423,9 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
         ))}
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-3">
           <button
-            className="bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"
+            className="w-full sm:w-auto bg-secondary text-secondary-foreground font-display text-lg sm:text-xl px-8 py-3 min-h-[48px] rounded-lg hover:opacity-90 transition"
             onClick={() => dispatch({ type: "RESET_SIMULATION" })}
           >
             Start New Day
@@ -433,11 +433,12 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           <button
             onClick={handleExportSummaryScreenshot}
             disabled={state.completedRides.length === 0 || exportingPDF}
-            className="inline-flex items-center gap-2 border border-secondary text-secondary font-display text-xl px-8 py-3 rounded-lg hover:bg-secondary/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-secondary text-secondary font-display text-lg sm:text-xl px-8 py-3 min-h-[48px] rounded-lg hover:bg-secondary/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-5 h-5" />
             {exportingPDF ? "Exporting…" : "Export PDF"}
           </button>
+
 
         </div>
       </div>
