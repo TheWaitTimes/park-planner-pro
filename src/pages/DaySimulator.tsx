@@ -397,26 +397,27 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
         </div>
 
 
-        <h2 className="text-3xl text-foreground mb-4">Timeline</h2>
+        <h2 className="text-2xl sm:text-3xl text-foreground mb-4">Timeline</h2>
         {groupedVisits.map(({ key, park, rides }) => (
           <div key={key} className="mb-6">
-            <h3 className="text-2xl text-secondary mb-2">{park}</h3>
+            <h3 className="text-xl sm:text-2xl text-secondary mb-2">{park}</h3>
             <div className="space-y-1">
               {rides.map((ride, i) => {
                 const isAction = ride.kind === "action";
                 const totalMin = ride.waitTime + ride.onRideTime;
                 return (
-                  <div key={i} className={`flex items-center gap-2 text-sm font-body rounded px-3 py-2 border ${isAction ? "bg-secondary/5 border-secondary/30" : "bg-card border-border"}`}>
-                    <span className="text-muted-foreground w-32 shrink-0">
+                  <div key={i} className={`flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-xs sm:text-sm font-body rounded px-3 py-2 border ${isAction ? "bg-secondary/5 border-secondary/30" : "bg-card border-border"}`}>
+                    <span className="text-muted-foreground sm:w-32 shrink-0">
                       {formatTime(ride.timeStarted)} – {formatTime(ride.timeFinished)}
                     </span>
-                    <span className={`font-semibold ${isAction ? "text-secondary" : "text-foreground"}`}>{ride.rideName}</span>
-                    <span className="text-muted-foreground ml-auto">
+                    <span className={`font-semibold break-words ${isAction ? "text-secondary" : "text-foreground"}`}>{ride.rideName}</span>
+                    <span className="text-muted-foreground sm:ml-auto">
                       {isAction ? `${totalMin} min` : `${ride.waitTime} min wait · ${ride.onRideTime} min ride`}
                     </span>
                   </div>
                 );
               })}
+
             </div>
           </div>
         ))}
