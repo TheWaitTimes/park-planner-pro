@@ -643,7 +643,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                   <button
                     key={park}
                     onClick={() => setPendingAction({ kind: "hop", targetPark: park, travelTime })}
-                    className="bg-primary text-primary-foreground font-display text-base px-4 py-2 rounded-lg hover:opacity-90 transition inline-flex flex-col items-start"
+                    className="bg-primary text-primary-foreground font-display text-base px-4 py-2 min-h-[48px] rounded-lg hover:opacity-90 transition inline-flex flex-col items-start justify-center flex-1 sm:flex-none min-w-[45%]"
                   >
                     <span>{park}</span>
                     <span className="text-xs opacity-80 font-body">{travelTime} min travel</span>
@@ -765,7 +765,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           onClick={() => setPendingRide(null)}
         >
           <div
-            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-6"
+            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-display text-2xl text-foreground mb-1">Confirm Ride</h3>
@@ -812,7 +812,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPendingRide(null)}
-                      className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
+                      className="flex-1 bg-muted text-foreground font-display text-base py-3 min-h-[48px] rounded-lg hover:bg-muted/80 transition"
                     >
                       Cancel
                     </button>
@@ -831,7 +831,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                         });
                         setPendingRide(null);
                       }}
-                      className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
+                      className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-3 min-h-[48px] rounded-lg hover:opacity-90 transition"
                     >
                       Confirm
                     </button>
@@ -850,7 +850,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           onClick={() => setPendingAction(null)}
         >
           <div
-            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-6"
+            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-display text-2xl text-foreground mb-1">
@@ -891,7 +891,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
             <div className="flex gap-2">
               <button
                 onClick={() => setPendingAction(null)}
-                className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
+                className="flex-1 bg-muted text-foreground font-display text-base py-3 min-h-[48px] rounded-lg hover:bg-muted/80 transition"
               >
                 Cancel
               </button>
@@ -917,7 +917,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                   }
                   setPendingAction(null);
                 }}
-                className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
+                className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-3 min-h-[48px] rounded-lg hover:opacity-90 transition"
               >
                 Confirm
               </button>
