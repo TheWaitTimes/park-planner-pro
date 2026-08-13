@@ -506,7 +506,7 @@ export default function DayOptimizer() {
         Build your dream day — add rides to each part of the day, set your conditions, and run the report.
       </p>
 
-      <div className="grid lg:grid-cols-[1fr_360px] gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 lg:gap-8">
         {/* LEFT: Plan builder */}
         <div className="space-y-6">
           {/* Park selectors */}

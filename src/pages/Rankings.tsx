@@ -218,57 +218,58 @@ export default function Rankings() {
               style={{ width: `${((pairIdx + 1) / pairs.length) * 100}%` }}
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-stretch">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-3 md:gap-4 items-stretch">
             <button
               onClick={() => handleChoice("left")}
-              className="bg-card border-2 border-border hover:border-secondary rounded-xl p-6 text-center transition-all hover:shadow-lg cursor-pointer"
+              className="bg-card border-2 border-border hover:border-secondary rounded-xl p-4 sm:p-6 text-center transition-all hover:shadow-lg cursor-pointer min-h-[88px]"
             >
-              <h3 className="font-display text-2xl text-foreground mb-2">{filteredItems[currentPair[0]].name}</h3>
+              <h3 className="font-display text-lg sm:text-2xl text-foreground mb-2 break-words">{filteredItems[currentPair[0]].name}</h3>
               <p className="text-sm text-muted-foreground font-body">{filteredItems[currentPair[0]].parkLocation}</p>
               <p className="text-sm text-muted-foreground font-body">{filteredItems[currentPair[0]].parkArea}</p>
             </button>
             <div className="flex items-center justify-center">
-              <span className="font-display text-3xl text-muted-foreground">VS</span>
+              <span className="font-display text-xl md:text-3xl text-muted-foreground">VS</span>
             </div>
             <button
               onClick={() => handleChoice("right")}
-              className="bg-card border-2 border-border hover:border-secondary rounded-xl p-6 text-center transition-all hover:shadow-lg cursor-pointer"
+              className="bg-card border-2 border-border hover:border-secondary rounded-xl p-4 sm:p-6 text-center transition-all hover:shadow-lg cursor-pointer min-h-[88px]"
             >
-              <h3 className="font-display text-2xl text-foreground mb-2">{filteredItems[currentPair[1]].name}</h3>
+              <h3 className="font-display text-lg sm:text-2xl text-foreground mb-2 break-words">{filteredItems[currentPair[1]].name}</h3>
               <p className="text-sm text-muted-foreground font-body">{filteredItems[currentPair[1]].parkLocation}</p>
               <p className="text-sm text-muted-foreground font-body">{filteredItems[currentPair[1]].parkArea}</p>
             </button>
           </div>
+
         </div>
       )}
 
       {/* Results */}
       {isFinished && (
         <div>
-          <h2 className="text-3xl text-foreground mb-4">Your Rankings</h2>
+          <h2 className="text-2xl sm:text-3xl text-foreground mb-4">Your Rankings</h2>
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left px-4 py-3 font-display text-lg text-foreground">#</th>
-                  <th className="text-left px-4 py-3 font-display text-lg text-foreground">Name</th>
-                  <th className="text-right px-4 py-3 font-display text-lg text-foreground">Rating</th>
+                  <th className="text-left px-2 sm:px-4 py-3 font-display text-base sm:text-lg text-foreground">#</th>
+                  <th className="text-left px-2 sm:px-4 py-3 font-display text-base sm:text-lg text-foreground">Name</th>
+                  <th className="text-right px-2 sm:px-4 py-3 font-display text-base sm:text-lg text-foreground">Rating</th>
                 </tr>
               </thead>
               <tbody>
                 {rankingTable.map((item) => (
                   <tr key={item.name} className="border-b border-border last:border-0 hover:bg-muted/50">
-                    <td className="px-4 py-3 font-display text-xl text-secondary">{item.rank}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-2 sm:px-4 py-3 font-display text-lg sm:text-xl text-secondary">{item.rank}</td>
+                    <td className="px-2 sm:px-4 py-3">
                       <div className="font-body font-semibold text-foreground">{item.name}</div>
                       <div className="text-xs text-muted-foreground">{item.parkLocation} · {item.parkArea}</div>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-2 sm:px-4 py-3 text-right">
                       <div className="inline-flex items-center gap-2">
-                        <div className="w-24 bg-muted rounded-full h-2">
+                        <div className="hidden sm:block w-24 bg-muted rounded-full h-2">
                           <div className="bg-secondary h-2 rounded-full" style={{ width: `${item.rating}%` }} />
                         </div>
-                        <span className="text-sm font-body text-muted-foreground w-12 text-right">{item.rating}</span>
+                        <span className="text-sm font-body text-muted-foreground w-10 sm:w-12 text-right">{item.rating}</span>
                       </div>
                     </td>
                   </tr>
@@ -276,6 +277,7 @@ export default function Rankings() {
               </tbody>
             </table>
           </div>
+
           <button
             onClick={startQuiz}
             className="mt-6 bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"

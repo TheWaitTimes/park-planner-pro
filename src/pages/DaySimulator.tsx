@@ -364,66 +364,68 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
         <div ref={summaryRef} className="bg-background p-4 rounded-lg">
         <h1 className="text-3xl md:text-4xl text-foreground mb-6 font-semibold tracking-tight">Day Summary</h1>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-card rounded-lg p-5 border border-border col-span-2">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-8">
+          <div className="bg-card rounded-lg p-4 sm:p-5 border border-border col-span-2">
             <div className="text-muted-foreground text-sm font-body">Parks Visited</div>
-            <div className="text-2xl font-display text-foreground">{state.selectedParks.join(" → ")}</div>
+            <div className="text-lg sm:text-2xl font-display text-foreground break-words">{state.selectedParks.join(" → ")}</div>
           </div>
-          <div className="bg-card rounded-lg p-5 border border-border">
+          <div className="bg-card rounded-lg p-4 sm:p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Total Rides</div>
-            <div className="text-4xl font-display text-secondary">{rideCount}</div>
+            <div className="text-3xl sm:text-4xl font-display text-secondary">{rideCount}</div>
           </div>
-          <div className="bg-card rounded-lg p-5 border border-border">
+          <div className="bg-card rounded-lg p-4 sm:p-5 border border-border">
             <div className="text-muted-foreground text-sm font-body">Ended At</div>
-            <div className="text-4xl font-display text-secondary">{formatTime(state.currentTime)}</div>
+            <div className="text-2xl sm:text-4xl font-display text-secondary">{formatTime(state.currentTime)}</div>
           </div>
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Wait</div>
-            <div className="text-2xl font-display text-foreground">{totalWait} min</div>
+            <div className="text-xl sm:text-2xl font-display text-foreground">{totalWait} min</div>
           </div>
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">On-Ride</div>
-            <div className="text-2xl font-display text-foreground">{totalOnRide} min</div>
+            <div className="text-xl sm:text-2xl font-display text-foreground">{totalOnRide} min</div>
           </div>
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Walking / Travel</div>
-            <div className="text-2xl font-display text-foreground">{totalWalking + state.totalTravelMinutes} min</div>
+            <div className="text-xl sm:text-2xl font-display text-foreground">{totalWalking + state.totalTravelMinutes} min</div>
           </div>
           <div className="bg-card rounded-lg p-4 border border-border">
             <div className="text-muted-foreground text-xs font-body uppercase tracking-wide">Hops · Weather</div>
-            <div className="text-2xl font-display text-foreground">{parkHopCount} · {state.weatherEventCount}</div>
+            <div className="text-xl sm:text-2xl font-display text-foreground">{parkHopCount} · {state.weatherEventCount}</div>
             <div className="text-xs font-body text-muted-foreground mt-1">{distinctParkCount} distinct park{distinctParkCount !== 1 ? "s" : ""}</div>
           </div>
         </div>
 
-        <h2 className="text-3xl text-foreground mb-4">Timeline</h2>
+
+        <h2 className="text-2xl sm:text-3xl text-foreground mb-4">Timeline</h2>
         {groupedVisits.map(({ key, park, rides }) => (
           <div key={key} className="mb-6">
-            <h3 className="text-2xl text-secondary mb-2">{park}</h3>
+            <h3 className="text-xl sm:text-2xl text-secondary mb-2">{park}</h3>
             <div className="space-y-1">
               {rides.map((ride, i) => {
                 const isAction = ride.kind === "action";
                 const totalMin = ride.waitTime + ride.onRideTime;
                 return (
-                  <div key={i} className={`flex items-center gap-2 text-sm font-body rounded px-3 py-2 border ${isAction ? "bg-secondary/5 border-secondary/30" : "bg-card border-border"}`}>
-                    <span className="text-muted-foreground w-32 shrink-0">
+                  <div key={i} className={`flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-xs sm:text-sm font-body rounded px-3 py-2 border ${isAction ? "bg-secondary/5 border-secondary/30" : "bg-card border-border"}`}>
+                    <span className="text-muted-foreground sm:w-32 shrink-0">
                       {formatTime(ride.timeStarted)} – {formatTime(ride.timeFinished)}
                     </span>
-                    <span className={`font-semibold ${isAction ? "text-secondary" : "text-foreground"}`}>{ride.rideName}</span>
-                    <span className="text-muted-foreground ml-auto">
+                    <span className={`font-semibold break-words ${isAction ? "text-secondary" : "text-foreground"}`}>{ride.rideName}</span>
+                    <span className="text-muted-foreground sm:ml-auto">
                       {isAction ? `${totalMin} min` : `${ride.waitTime} min wait · ${ride.onRideTime} min ride`}
                     </span>
                   </div>
                 );
               })}
+
             </div>
           </div>
         ))}
         </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
+        <div className="mt-6 flex flex-col sm:flex-row sm:flex-wrap gap-3">
           <button
-            className="bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"
+            className="w-full sm:w-auto bg-secondary text-secondary-foreground font-display text-lg sm:text-xl px-8 py-3 min-h-[48px] rounded-lg hover:opacity-90 transition"
             onClick={() => dispatch({ type: "RESET_SIMULATION" })}
           >
             Start New Day
@@ -431,11 +433,12 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           <button
             onClick={handleExportSummaryScreenshot}
             disabled={state.completedRides.length === 0 || exportingPDF}
-            className="inline-flex items-center gap-2 border border-secondary text-secondary font-display text-xl px-8 py-3 rounded-lg hover:bg-secondary/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 border border-secondary text-secondary font-display text-lg sm:text-xl px-8 py-3 min-h-[48px] rounded-lg hover:bg-secondary/10 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-5 h-5" />
             {exportingPDF ? "Exporting…" : "Export PDF"}
           </button>
+
 
         </div>
       </div>
@@ -582,7 +585,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                         parkArea: ride.parkArea,
                       })
                     }
-                    className={`w-full text-left px-4 py-3 rounded-lg border transition font-body text-sm ${
+                    className={`w-full text-left px-3 sm:px-4 py-3 min-h-[56px] rounded-lg border transition font-body text-sm flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 ${
                       disabled
                         ? "border-border bg-muted/40 text-muted-foreground cursor-not-allowed opacity-60"
                         : wontFinish
@@ -592,22 +595,25 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                             : "border-border bg-card hover:border-secondary/40"
                     }`}
                   >
-                    <span className="text-muted-foreground">{ride.parkArea}</span>
-                    <span className="mx-2 text-muted-foreground">—</span>
-                    <span className="font-semibold text-foreground">
-                      {ride.name}
+                    <span className="min-w-0 flex-1">
+                      <span className="font-semibold text-foreground block sm:inline break-words">
+                        {ride.name}
+                      </span>
+                      <span className="text-muted-foreground text-xs sm:text-sm block sm:inline sm:before:content-['·'] sm:before:mx-2">
+                        {ride.parkArea}
+                      </span>
+                      {riddenCount > 0 && !disabled && (
+                        <span className="ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block text-[11px] font-body text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
+                          Ridden ×{riddenCount}
+                        </span>
+                      )}
+                      {wontFinish && (
+                        <span className="ml-0 sm:ml-2 mt-1 sm:mt-0 inline-block text-[11px] font-body text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
+                          Won't finish before close
+                        </span>
+                      )}
                     </span>
-                    {riddenCount > 0 && !disabled && (
-                      <span className="ml-2 text-[11px] font-body text-muted-foreground bg-muted px-1.5 py-0.5 rounded">
-                        Ridden ×{riddenCount}
-                      </span>
-                    )}
-                    {wontFinish && (
-                      <span className="ml-2 text-[11px] font-body text-destructive bg-destructive/10 px-1.5 py-0.5 rounded">
-                        Won't finish before close
-                      </span>
-                    )}
-                    <span className="float-right text-muted-foreground inline-flex items-center gap-1">
+                    <span className="text-muted-foreground text-xs sm:text-sm shrink-0 sm:text-right">
                       {disabled ? (
                         <span className="inline-flex items-center gap-1 text-destructive">
                           <CloudRain className="w-3.5 h-3.5" /> Closed
@@ -620,6 +626,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                       )}
                     </span>
                   </button>
+
                 );
 
               })}
@@ -636,7 +643,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                   <button
                     key={park}
                     onClick={() => setPendingAction({ kind: "hop", targetPark: park, travelTime })}
-                    className="bg-primary text-primary-foreground font-display text-base px-4 py-2 rounded-lg hover:opacity-90 transition inline-flex flex-col items-start"
+                    className="bg-primary text-primary-foreground font-display text-base px-4 py-2 min-h-[48px] rounded-lg hover:opacity-90 transition inline-flex flex-col items-start justify-center flex-1 sm:flex-none min-w-[45%]"
                   >
                     <span>{park}</span>
                     <span className="text-xs opacity-80 font-body">{travelTime} min travel</span>
@@ -758,7 +765,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           onClick={() => setPendingRide(null)}
         >
           <div
-            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-6"
+            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-display text-2xl text-foreground mb-1">Confirm Ride</h3>
@@ -805,7 +812,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                   <div className="flex gap-2">
                     <button
                       onClick={() => setPendingRide(null)}
-                      className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
+                      className="flex-1 bg-muted text-foreground font-display text-base py-3 min-h-[48px] rounded-lg hover:bg-muted/80 transition"
                     >
                       Cancel
                     </button>
@@ -824,7 +831,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                         });
                         setPendingRide(null);
                       }}
-                      className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
+                      className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-3 min-h-[48px] rounded-lg hover:opacity-90 transition"
                     >
                       Confirm
                     </button>
@@ -843,7 +850,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
           onClick={() => setPendingAction(null)}
         >
           <div
-            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-6"
+            className="bg-card rounded-lg border border-border shadow-xl max-w-sm w-full p-5 sm:p-6 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="font-display text-2xl text-foreground mb-1">
@@ -884,7 +891,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
             <div className="flex gap-2">
               <button
                 onClick={() => setPendingAction(null)}
-                className="flex-1 bg-muted text-foreground font-display text-base py-2 rounded-lg hover:bg-muted/80 transition"
+                className="flex-1 bg-muted text-foreground font-display text-base py-3 min-h-[48px] rounded-lg hover:bg-muted/80 transition"
               >
                 Cancel
               </button>
@@ -910,7 +917,7 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
                   }
                   setPendingAction(null);
                 }}
-                className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-2 rounded-lg hover:opacity-90 transition"
+                className="flex-1 bg-secondary text-secondary-foreground font-display text-base py-3 min-h-[48px] rounded-lg hover:opacity-90 transition"
               >
                 Confirm
               </button>
