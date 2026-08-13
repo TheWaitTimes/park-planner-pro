@@ -30,22 +30,22 @@ export default function Index() {
       {/* Header */}
       <header className="bg-header sticky top-0 z-50 shadow-sm border-b border-header-foreground/10">
         {/* Top bar */}
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <img
               src={msiLogo.url}
               alt="Main Street Insights logo"
               width={446}
               height={512}
-              className="h-14 w-auto md:h-16"
+              className="h-10 sm:h-14 md:h-16 w-auto shrink-0"
               loading="eager"
               decoding="async"
             />
-            <h1 className="font-display text-xl md:text-2xl text-header-foreground tracking-tight font-semibold">
+            <h1 className="font-display text-base sm:text-xl md:text-2xl text-header-foreground tracking-tight font-semibold whitespace-nowrap">
               Main Street <span className="text-header-accent font-normal">Insights</span>
             </h1>
           </div>
-          <div className="flex items-center gap-3 text-sm font-body">
+          <div className="flex items-center gap-2 sm:gap-3 text-sm font-body shrink-0">
             {session ? (
               <>
                 {isAdmin && (
@@ -58,24 +58,28 @@ export default function Index() {
                 </span>
                 <button
                   onClick={signOut}
-                  className="text-header-foreground/80 hover:text-header-foreground inline-flex items-center gap-1.5"
+                  aria-label="Sign out"
+                  className="text-header-foreground/80 hover:text-header-foreground inline-flex items-center gap-1.5 min-h-[44px] px-1"
                 >
-                  <LogOut className="w-4 h-4" /> Sign out
+                  <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
+                  <span className="hidden sm:inline">Sign out</span>
                 </button>
               </>
             ) : (
               <Link
                 to="/login"
-                className="text-header-foreground/80 hover:text-header-foreground inline-flex items-center gap-1.5"
+                aria-label="Sign in"
+                className="text-header-foreground/80 hover:text-header-foreground inline-flex items-center gap-1.5 min-h-[44px] px-1"
               >
-                <LogIn className="w-4 h-4" /> Sign in
+                <LogIn className="w-5 h-5 sm:w-4 sm:h-4" />
+                <span className="hidden sm:inline">Sign in</span>
               </Link>
             )}
           </div>
         </div>
         {/* Tab Navigation */}
         <nav className="border-t border-header-foreground/10">
-          <div className="max-w-7xl mx-auto px-6 flex gap-1">
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 flex gap-1 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -83,7 +87,7 @@ export default function Index() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`font-body text-sm md:text-[15px] font-medium px-4 py-3 transition-colors inline-flex items-center gap-2 border-b-2 -mb-px ${
+                  className={`font-body text-sm md:text-[15px] font-medium px-3 sm:px-4 py-3 transition-colors inline-flex items-center gap-2 border-b-2 -mb-px shrink-0 snap-start whitespace-nowrap ${
                     isActive
                       ? "text-header-accent border-header-accent"
                       : "text-header-foreground/70 border-transparent hover:text-header-foreground"
@@ -99,7 +103,8 @@ export default function Index() {
       </header>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-6 py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+
         {activeTab === "home" && (
           <Home
             onPlanPark={(park) => {

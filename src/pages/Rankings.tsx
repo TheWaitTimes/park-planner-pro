@@ -246,30 +246,30 @@ export default function Rankings() {
       {/* Results */}
       {isFinished && (
         <div>
-          <h2 className="text-3xl text-foreground mb-4">Your Rankings</h2>
+          <h2 className="text-2xl sm:text-3xl text-foreground mb-4">Your Rankings</h2>
           <div className="bg-card rounded-xl border border-border overflow-hidden">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-border">
-                  <th className="text-left px-4 py-3 font-display text-lg text-foreground">#</th>
-                  <th className="text-left px-4 py-3 font-display text-lg text-foreground">Name</th>
-                  <th className="text-right px-4 py-3 font-display text-lg text-foreground">Rating</th>
+                  <th className="text-left px-2 sm:px-4 py-3 font-display text-base sm:text-lg text-foreground">#</th>
+                  <th className="text-left px-2 sm:px-4 py-3 font-display text-base sm:text-lg text-foreground">Name</th>
+                  <th className="text-right px-2 sm:px-4 py-3 font-display text-base sm:text-lg text-foreground">Rating</th>
                 </tr>
               </thead>
               <tbody>
                 {rankingTable.map((item) => (
                   <tr key={item.name} className="border-b border-border last:border-0 hover:bg-muted/50">
-                    <td className="px-4 py-3 font-display text-xl text-secondary">{item.rank}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-2 sm:px-4 py-3 font-display text-lg sm:text-xl text-secondary">{item.rank}</td>
+                    <td className="px-2 sm:px-4 py-3">
                       <div className="font-body font-semibold text-foreground">{item.name}</div>
                       <div className="text-xs text-muted-foreground">{item.parkLocation} · {item.parkArea}</div>
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-2 sm:px-4 py-3 text-right">
                       <div className="inline-flex items-center gap-2">
-                        <div className="w-24 bg-muted rounded-full h-2">
+                        <div className="hidden sm:block w-24 bg-muted rounded-full h-2">
                           <div className="bg-secondary h-2 rounded-full" style={{ width: `${item.rating}%` }} />
                         </div>
-                        <span className="text-sm font-body text-muted-foreground w-12 text-right">{item.rating}</span>
+                        <span className="text-sm font-body text-muted-foreground w-10 sm:w-12 text-right">{item.rating}</span>
                       </div>
                     </td>
                   </tr>
@@ -277,6 +277,7 @@ export default function Rankings() {
               </tbody>
             </table>
           </div>
+
           <button
             onClick={startQuiz}
             className="mt-6 bg-secondary text-secondary-foreground font-display text-xl px-8 py-3 rounded-lg hover:opacity-90 transition"
