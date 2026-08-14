@@ -116,6 +116,20 @@
 }
 
 @layer utilities {
+  /* Bottom tab bar: 56px of tappable row + iOS home-indicator inset */
+  .bottom-nav-safe {
+    padding-bottom: max(0.25rem, env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Reserve space so fixed bottom nav never overlaps page content */
+  .pb-bottom-nav {
+    padding-bottom: calc(3.5rem + 1.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .mb-bottom-nav {
+    margin-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  }
+
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
