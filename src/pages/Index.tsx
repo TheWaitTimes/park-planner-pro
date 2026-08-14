@@ -103,7 +103,7 @@ export default function Index() {
       </header>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 md:pb-10">
 
         {activeTab === "home" && (
           <Home
@@ -121,14 +121,14 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border text-muted-foreground text-center py-6 font-body text-sm mt-12 mb-16 md:mb-0">
+      <footer className="border-t border-border text-muted-foreground text-center py-6 font-body text-sm mt-12 pb-bottom-nav md:pb-0">
         Main Street Insights © 2026
       </footer>
 
       {/* Mobile bottom tab bar */}
       <nav
         aria-label="Sections"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-header border-t border-header-foreground/10 pb-[env(safe-area-inset-bottom)]"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-header border-t border-header-foreground/10 bottom-nav-safe"
       >
         <div className="grid grid-cols-5">
           {TABS.map((tab) => {
