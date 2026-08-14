@@ -78,7 +78,7 @@ export default function Index() {
           </div>
         </div>
         {/* Tab Navigation */}
-        <nav className="border-t border-header-foreground/10">
+        <nav className="hidden md:block border-t border-header-foreground/10">
           <div className="max-w-7xl mx-auto px-2 sm:px-6 flex gap-1 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {TABS.map((tab) => {
               const Icon = tab.icon;
@@ -103,7 +103,7 @@ export default function Index() {
       </header>
 
       {/* Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-24 md:pb-10">
 
         {activeTab === "home" && (
           <Home
@@ -121,9 +121,37 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border text-muted-foreground text-center py-6 font-body text-sm mt-12">
+      <footer className="border-t border-border text-muted-foreground text-center py-6 font-body text-sm mt-12 mb-16 md:mb-0">
         Main Street Insights © 2026
       </footer>
+
+      {/* Mobile bottom tab bar */}
+      <nav
+        aria-label="Sections"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-header border-t border-header-foreground/10 pb-[env(safe-area-inset-bottom)]"
+      >
+        <div className="grid grid-cols-5">
+          {TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                aria-current={isActive ? "page" : undefined}
+                className={`flex flex-col items-center justify-center gap-1 min-h-[56px] px-1 py-2 font-body text-[10px] font-medium transition-colors ${
+                  isActive ? "text-header-accent" : "text-header-foreground/70"
+                }`}
+              >
+                <Icon className="w-5 h-5" strokeWidth={2} />
+                <span className="leading-none truncate max-w-full">
+                  {tab.label.replace("Day ", "")}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }
