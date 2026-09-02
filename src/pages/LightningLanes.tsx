@@ -14,6 +14,31 @@ const PARK_OPTIONS: { id: string; name: string; icon: LucideIcon }[] = [
 
 type LLKind = "multi" | "single";
 
+// Typical per-guest, per-day Lightning Lane Multi Pass pricing at Walt Disney World.
+// Disney prices these dynamically by date; these are the common ranges by park.
+const MULTI_PASS_PRICE: Record<string, { low: number; high: number }> = {
+  "Magic Kingdom": { low: 32, high: 44 },
+  EPCOT: { low: 22, high: 33 },
+  "Hollywood Studios": { low: 27, high: 39 },
+  "Animal Kingdom": { low: 18, high: 28 },
+};
+
+// Typical per-guest Single Pass pricing by attraction (used when the live feed omits a price).
+const SINGLE_PASS_PRICE: Record<string, number> = {
+  "TRON Lightcycle / Run": 22,
+  "Seven Dwarfs Mine Train": 16,
+  "Guardians of the Galaxy: Cosmic Rewind": 20,
+  "Test Track": 17,
+  "Star Wars: Rise of the Resistance": 22,
+  "Slinky Dog Dash": 16,
+  "Avatar Flight of Passage": 20,
+  "Expedition Everest - Legend of the Forbidden Mountain": 14,
+};
+
+function usd(n: number) {
+  return `$${n.toFixed(2).replace(/\.00$/, "")}`;
+}
+
 interface LaneRow {
   name: string;
   park: string;
@@ -23,8 +48,10 @@ interface LaneRow {
   returnEnd: string | null;
   price: string | null;
   priceAmount: number | null;
+  priceEstimated: boolean;
   standby: number | null;
 }
+
 
 function fmtTime(iso: string | null) {
   if (!iso) return null;
@@ -52,6 +79,28 @@ async function fetchLanes(): Promise<LaneRow[]> {
           ] as [string, LLKind][]) {
             const lane = q[key];
             if (!lane) continue;
+            const apiAmount =
+              typeof lane.price?.amount === "number" ? lane.price.amount / 100 : null;
+            let amount = apiAmount;
+            let estimated = false;
+            let formatted: string | null = lane.price?.formatted ?? null;
+            if (amount == null) {
+              if (kind === "single") {
+                const fallback = SINGLE_PASS_PRICE[entity.name];
+                if (fallback != null) {
+                  amount = fallback;
+                  formatted = usd(fallback);
+                  estimated = true;
+                }
+              } else {
+                const range = MULTI_PASS_PRICE[name];
+                if (range) {
+                  amount = (range.low + range.high) / 2;
+                  formatted = `${usd(range.low)}–${usd(range.high)}`;
+                  estimated = true;
+                }
+              }
+            }
             rows.push({
               name: entity.name,
               park: name,
@@ -59,11 +108,13 @@ async function fetchLanes(): Promise<LaneRow[]> {
               state: lane.state ?? "UNKNOWN",
               returnStart: lane.returnStart ?? null,
               returnEnd: lane.returnEnd ?? null,
-              price: lane.price?.formatted ?? null,
-              priceAmount: lane.price?.amount ?? null,
+              price: formatted,
+              priceAmount: amount,
+              priceEstimated: estimated,
               standby,
             });
           }
+
         }
         return rows;
       } catch {
@@ -208,14 +259,15 @@ export default function LightningLanes() {
                       {l.kind === "single" ? (
                         <>
                           <Ticket className="w-3.5 h-3.5" /> Single Pass
-                          {l.price ? ` · ${l.price}` : ""}
                         </>
                       ) : (
                         <>
                           <Zap className="w-3.5 h-3.5" /> Multi Pass
                         </>
                       )}
+                      {l.price ? ` · ${l.price}${l.priceEstimated ? " est." : ""}` : ""}
                     </span>
+
                     {l.standby != null && <span>Standby {l.standby}m</span>}
                   </div>
                   <div
