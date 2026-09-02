@@ -259,14 +259,15 @@ export default function LightningLanes() {
                       {l.kind === "single" ? (
                         <>
                           <Ticket className="w-3.5 h-3.5" /> Single Pass
-                          {l.price ? ` · ${l.price}` : ""}
                         </>
                       ) : (
                         <>
                           <Zap className="w-3.5 h-3.5" /> Multi Pass
                         </>
                       )}
+                      {l.price ? ` · ${l.price}${l.priceEstimated ? " est." : ""}` : ""}
                     </span>
+
                     {l.standby != null && <span>Standby {l.standby}m</span>}
                   </div>
                   <div
