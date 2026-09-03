@@ -221,7 +221,7 @@ export default function LightningLanes() {
                           <Zap className="w-3.5 h-3.5" /> Multi Pass
                         </>
                       )}
-                      {l.price ? ` · ${l.price}${l.priceEstimated ? " est." : ""}` : ""}
+                      {l.price ? ` · ${l.price}` : ""}
                     </span>
 
                     {l.standby != null && <span>Standby {l.standby}m</span>}
