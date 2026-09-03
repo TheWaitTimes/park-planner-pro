@@ -54,28 +54,10 @@ async function fetchLanes(): Promise<LaneRow[]> {
           ] as [string, LLKind][]) {
             const lane = q[key];
             if (!lane) continue;
-            const apiAmount =
+            const amount =
               typeof lane.price?.amount === "number" ? lane.price.amount / 100 : null;
-            let amount = apiAmount;
-            let estimated = false;
-            let formatted: string | null = lane.price?.formatted ?? null;
-            if (amount == null) {
-              if (kind === "single") {
-                const fallback = SINGLE_PASS_PRICE[entity.name];
-                if (fallback != null) {
-                  amount = fallback;
-                  formatted = usd(fallback);
-                  estimated = true;
-                }
-              } else {
-                const range = MULTI_PASS_PRICE[name];
-                if (range) {
-                  amount = (range.low + range.high) / 2;
-                  formatted = `${usd(range.low)}–${usd(range.high)}`;
-                  estimated = true;
-                }
-              }
-            }
+            const formatted: string | null =
+              lane.price?.formatted ?? (amount != null ? usd(amount) : null);
             rows.push({
               name: entity.name,
               park: name,
@@ -85,7 +67,6 @@ async function fetchLanes(): Promise<LaneRow[]> {
               returnEnd: lane.returnEnd ?? null,
               price: formatted,
               priceAmount: amount,
-              priceEstimated: estimated,
               standby,
             });
           }
