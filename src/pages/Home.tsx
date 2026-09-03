@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Clock, CalendarRange } from "lucide-react";
+import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Clock, CalendarRange, Database } from "lucide-react";
 import { PARKS } from "@/data/parks";
 import { cachedFetch, readCacheMeta, TTL_30_MIN } from "@/lib/liveCache";
 
@@ -271,9 +271,47 @@ export default function Home({ onPlanPark }: { onPlanPark?: (park: string) => vo
         )}
 
       </section>
+
+      {/* Data Sources */}
+      <section className="rounded-lg border border-border bg-card p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Database className="w-5 h-5 text-secondary" />
+          <h2 className="font-display text-base font-semibold text-foreground">Data Sources</h2>
+        </div>
+        <ul className="space-y-2 text-sm text-muted-foreground">
+          <li>
+            <span className="font-medium text-foreground">Weather:</span>{" "}
+            <a
+              href="https://open-meteo.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              Open-Meteo
+            </a>{" "}
+            — current temperature, feels-like, and precipitation probability for Lake Buena Vista.
+          </li>
+          <li>
+            <span className="font-medium text-foreground">Wait times &amp; park hours:</span>{" "}
+            <a
+              href="https://www.themeparks.wiki/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground"
+            >
+              themeparks.wiki
+            </a>{" "}
+            — live standby waits and today’s operating hours for Magic Kingdom, EPCOT, Hollywood Studios, and Animal Kingdom.
+          </li>
+        </ul>
+        <p className="text-xs text-muted-foreground mt-3">
+          Live data refreshes automatically every 30 minutes. All times are shown in Eastern Time.
+        </p>
+      </section>
     </div>
   );
 }
+
 
 
 function WeatherCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {

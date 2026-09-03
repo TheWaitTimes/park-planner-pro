@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  RefreshCw, Ticket, Zap, Clock, Castle, Globe, Clapperboard, Trees,
+  RefreshCw, Ticket, Zap, Clock, Castle, Globe, Clapperboard, Trees, Database,
   type LucideIcon,
 } from "lucide-react";
 import { cachedFetch, readCacheMeta, TTL_30_MIN } from "@/lib/liveCache";
@@ -247,10 +247,25 @@ export default function LightningLanes() {
         )}
       </section>
 
-      <p className="text-xs text-muted-foreground">
-        Return windows come from the same live feed as wait times and park hours. Availability and pricing
-        change throughout the day — confirm in the official app before purchasing.
-      </p>
+      {/* Data Sources */}
+      <section className="rounded-lg border border-border bg-card p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Database className="w-5 h-5 text-secondary" />
+          <h2 className="font-display text-base font-semibold text-foreground">Data Sources</h2>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">Lightning Lane return windows, prices, and standby waits:</span>{" "}
+          <a
+            href="https://www.themeparks.wiki/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-foreground"
+          >
+            themeparks.wiki
+          </a>
+          . Data refreshes automatically every 30 minutes. Availability and pricing change throughout the day — confirm in the official app before purchasing.
+        </p>
+      </section>
     </div>
   );
 }
