@@ -9,7 +9,9 @@ import {
   initialSimulationState,
 } from "@/simulation/simulationReducer";
 import { PARKS } from "@/data/parks";
-import { getHopTime, getWalkingTime, RAIN_CLOSURE_CHANCE } from "@/lib/parkModel";
+import { getHopTime, getWalkingTime, RAIN_CLOSURE_CHANCE, capWait } from "@/lib/parkModel";
+import { fetchLiveWaits, findLiveWait, type LiveWaitMap } from "@/lib/liveWaits";
+
 
 function getTimeOfDay(date: Date): "morning" | "afternoon" | "evening" {
   const hour = date.getHours();
