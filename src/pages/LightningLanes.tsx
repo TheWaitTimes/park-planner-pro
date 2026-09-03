@@ -14,6 +14,11 @@ const PARK_OPTIONS: { id: string; name: string; icon: LucideIcon }[] = [
 
 type LLKind = "multi" | "single";
 
+function usd(n: number) {
+  return `$${n.toFixed(2).replace(/\.00$/, "")}`;
+}
+
+
 interface LaneRow {
   name: string;
   park: string;
