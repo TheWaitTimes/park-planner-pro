@@ -121,19 +121,60 @@ export default function DaySimulator({ initialPark }: { initialPark?: string } =
     return down;
   }, [state.weatherActive, state.weatherEventCount, currentParkName]);
 
+  // Live standby waits for the current park, refreshed every 30 minutes.
+  // Used to calibrate the modelled ranges to what the park is posting today.
+  const [liveWaits, setLiveWaits] = useState<LiveWaitMap>({});
+  useEffect(() => {
+    let cancelled = false;
+    fetchLiveWaits(currentParkName)
+      .then((w) => {
+        if (!cancelled) setLiveWaits(w);
+      })
+      .catch(() => setLiveWaits({}));
+    return () => {
+      cancelled = true;
+    };
+  }, [currentParkName]);
+
+  /**
+   * Park-wide crowd factor: median of (live wait / modelled midpoint) across the
+   * attractions we can match, so a busy or quiet day shifts every ride.
+   */
+  const liveFactor = useMemo(() => {
+    if (!currentPark) return 1;
+    const ratios: number[] = [];
+    currentPark.rides.forEach((ride) => {
+      const live = findLiveWait(liveWaits, ride.name);
+      if (live == null) return;
+      const [lo, hi] = ride.waitTimes[timeOfDay];
+      const mid = (lo + hi) / 2;
+      if (mid > 0) ratios.push(live / mid);
+    });
+    if (ratios.length < 3) return 1;
+    ratios.sort((a, b) => a - b);
+    const median = ratios[Math.floor(ratios.length / 2)];
+    return Math.min(1.6, Math.max(0.6, median));
+  }, [liveWaits, currentPark, timeOfDay]);
+
   // Waits are re-quoted every time the clock advances, so posted times shift
   // as the day moves along.
   const ridesWithWaits = useMemo(() => {
     if (!currentPark) return [];
     return currentPark.rides.map((ride) => {
-      let [min, max] = ride.waitTimes[timeOfDay];
-      min = Math.max(5, min + crowdModifier);
-      max = Math.max(min, max + crowdModifier);
+      const [baseLo, baseHi] = ride.waitTimes[timeOfDay];
+      const live = findLiveWait(liveWaits, ride.name);
+      // With a live posted wait, centre the range on it; otherwise scale the
+      // modelled range by today's park-wide crowd factor.
+      const centre = live != null ? live : ((baseLo + baseHi) / 2) * liveFactor;
+      const spread = Math.max(5, (baseHi - baseLo) / 2);
+      let min = capWait(centre - spread * 0.5 + crowdModifier);
+      let max = capWait(Math.max(min, centre + spread * 0.5 + crowdModifier));
       const waitTime = randomWait(min, max);
       const closed = closedRideIds.has(ride.id);
-      return { ...ride, waitTime, min, closed };
+      return { ...ride, waitTime, min, closed, liveWait: live };
     });
-  }, [timeOfDay, closedRideIds, currentParkName, crowdModifier, state.currentTime]);
+  }, [timeOfDay, closedRideIds, currentParkName, crowdModifier, state.currentTime, liveWaits, liveFactor]);
+
 
 
   useEffect(() => {
