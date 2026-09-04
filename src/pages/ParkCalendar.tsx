@@ -362,7 +362,7 @@ export default function ParkCalendar({ initialPark }: { initialPark?: string } =
         </h3>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="rounded-lg border border-border bg-card p-5">
-            <div className="text-sm font-medium text-foreground mb-3">Scheduled event nights &amp; extra hours</div>
+            <div className="text-sm font-medium text-foreground mb-3">Scheduled event nights</div>
             {ticketedDays.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 No ticketed events or extra hours reported for {park} this month.
