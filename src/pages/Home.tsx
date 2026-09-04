@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Clock, CalendarRange, Database } from "lucide-react";
+import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Clock, CalendarRange, CalendarDays, Database } from "lucide-react";
 import { PARKS } from "@/data/parks";
 import { cachedFetch, readCacheMeta, TTL_30_MIN } from "@/lib/liveCache";
 
@@ -106,7 +106,10 @@ async function fetchHours(): Promise<HoursRow[]> {
 }
 
 
-export default function Home({ onPlanPark }: { onPlanPark?: (park: string) => void } = {}) {
+export default function Home({
+  onPlanPark,
+  onOpenCalendar,
+}: { onPlanPark?: (park: string) => void; onOpenCalendar?: (park?: string) => void } = {}) {
   const [weather, setWeather] = useState<Weather | null>(null);
   const [waits, setWaits] = useState<WaitRow[]>([]);
   const [hours, setHours] = useState<HoursRow[]>([]);
@@ -240,9 +243,18 @@ export default function Home({ onPlanPark }: { onPlanPark?: (park: string) => vo
 
       {/* Park Hours */}
       <section>
-        <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-5 h-5 text-secondary" />
-          <h2 className="font-display text-xl font-semibold text-foreground">Today's Park Hours</h2>
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <Clock className="w-5 h-5 text-secondary" />
+            <h2 className="font-display text-xl font-semibold text-foreground">Today's Park Hours</h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => onOpenCalendar?.()}
+            className="inline-flex items-center gap-1.5 min-h-[44px] rounded-lg border border-border bg-card px-4 font-body text-sm font-medium text-secondary transition-colors hover:border-secondary hover:bg-accent/40"
+          >
+            <CalendarDays className="w-4 h-4" /> View full park calendar
+          </button>
         </div>
 
         {loading && !hours.length ? (
@@ -270,6 +282,15 @@ export default function Home({ onPlanPark }: { onPlanPark?: (park: string) => vo
           </div>
         )}
 
+        <div className="mt-4">
+          <button
+            type="button"
+            onClick={() => onOpenCalendar?.()}
+            className="font-body text-sm text-secondary underline hover:text-foreground"
+          >
+            See open/close dates, holidays, and special events for every park
+          </button>
+        </div>
       </section>
 
       {/* Data Sources */}
