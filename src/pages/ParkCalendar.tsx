@@ -373,7 +373,7 @@ export default function ParkCalendar({ initialPark }: { initialPark?: string } =
                     </div>
                     {d.extras.map((e, idx) => (
                       <div key={idx} className="text-muted-foreground text-xs mt-0.5">
-                        {e.description ?? e.type.replaceAll("_", " ")}
+                        {e.description ?? e.type.replace(/_/g, " ")}
                         {e.openingTime && ` · ${fmtTime(e.openingTime)}–${fmtTime(e.closingTime)}`}
                       </div>
                     ))}
