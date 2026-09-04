@@ -181,9 +181,16 @@ export default function ParkCalendar({ initialPark }: { initialPark?: string } =
       : monthNumber >= startM || monthNumber <= endM;
   });
 
+  const isOnlyEarlyEntry = (extras: ScheduleEntry[]) =>
+    extras.length > 0 &&
+    extras.every((e) => {
+      const desc = (e.description ?? "").toLowerCase();
+      return e.type === "EXTRA_HOURS" && (desc.includes("early entry") || desc.includes("early morning"));
+    });
+
   const ticketedDays = Array.from(byDate.values())
     .filter((d) => d.date.startsWith(`${cursor.year}-${String(monthNumber).padStart(2, "0")}`))
-    .filter((d) => d.extras.length > 0)
+    .filter((d) => d.extras.length > 0 && !isOnlyEarlyEntry(d.extras))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   const shiftMonth = (delta: number) => {
