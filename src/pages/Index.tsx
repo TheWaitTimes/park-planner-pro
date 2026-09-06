@@ -142,7 +142,7 @@ export default function Index() {
         aria-label="Sections"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-header border-t border-header-foreground/10 bottom-nav-safe"
       >
-        <div className="grid grid-cols-8">
+        <div className="grid grid-cols-7">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -157,7 +157,7 @@ export default function Index() {
               >
                 <Icon className="w-5 h-5" strokeWidth={2} />
                 <span className="leading-none truncate max-w-full">
-                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar").replace("Park Map", "Map")}
+                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar")}
                 </span>
               </button>
             );
