@@ -129,7 +129,6 @@ export default function Index() {
         {activeTab === "optimizer" && <DayOptimizer />}
         {activeTab === "lanes" && <LightningLanes />}
         {activeTab === "rankings" && <Rankings />}
-        {activeTab === "map" && <ParkMap />}
         {activeTab === "blog" && <Blog />}
       </main>
 
