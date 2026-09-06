@@ -1,18 +1,17 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import msiLogo from "@/assets/msi-logo.png.asset.json";
-import { Home as HomeIcon, CalendarRange, CalendarDays, Gauge, Zap, Trophy, FileText, Map as MapIcon, LogIn, LogOut, type LucideIcon } from "lucide-react";
+import { Home as HomeIcon, CalendarRange, CalendarDays, Gauge, Zap, Trophy, FileText, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/Home";
 import DaySimulator from "@/pages/DaySimulator";
 import DayOptimizer from "@/pages/DayOptimizer";
 import LightningLanes from "@/pages/LightningLanes";
 import ParkCalendar from "@/pages/ParkCalendar";
-import ParkMap from "@/pages/ParkMap";
 import Rankings from "@/pages/Rankings";
 import Blog from "@/pages/Blog";
 
-type Tab = "home" | "calendar" | "simulator" | "optimizer" | "lanes" | "rankings" | "map" | "blog";
+type Tab = "home" | "calendar" | "simulator" | "optimizer" | "lanes" | "rankings" | "blog";
 
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: "home", label: "Home", icon: HomeIcon },
@@ -21,7 +20,6 @@ const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: "rankings", label: "Rankings", icon: Trophy },
   { id: "lanes", label: "Lightning Lanes", icon: Zap },
   { id: "calendar", label: "Park Calendar", icon: CalendarDays },
-  { id: "map", label: "Park Map", icon: MapIcon },
   { id: "blog", label: "Blog", icon: FileText },
 ];
 
@@ -131,7 +129,6 @@ export default function Index() {
         {activeTab === "optimizer" && <DayOptimizer />}
         {activeTab === "lanes" && <LightningLanes />}
         {activeTab === "rankings" && <Rankings />}
-        {activeTab === "map" && <ParkMap />}
         {activeTab === "blog" && <Blog />}
       </main>
 
@@ -145,7 +142,7 @@ export default function Index() {
         aria-label="Sections"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-header border-t border-header-foreground/10 bottom-nav-safe"
       >
-        <div className="grid grid-cols-8">
+        <div className="grid grid-cols-7">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -160,7 +157,7 @@ export default function Index() {
               >
                 <Icon className="w-5 h-5" strokeWidth={2} />
                 <span className="leading-none truncate max-w-full">
-                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar").replace("Park Map", "Map")}
+                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar")}
                 </span>
               </button>
             );
