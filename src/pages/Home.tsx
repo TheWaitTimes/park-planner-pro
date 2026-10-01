@@ -161,7 +161,7 @@ export default function Home({
     <div className="space-y-8">
       <div>
         <h1 className="font-display text-3xl md:text-4xl font-semibold text-foreground">
-          Welcome to Main Street Insights
+          Welcome to The Wait Times
         </h1>
         <p className="font-body text-muted-foreground mt-2">
           Data driven content from the most magical street on earth!

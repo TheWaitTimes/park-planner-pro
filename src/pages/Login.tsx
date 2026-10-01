@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import twtLogo from "@/assets/twt-logo.webp.asset.json";
 
 const credentialsSchema = z.object({
   email: z.string().trim().email("Enter a valid email").max(255),
@@ -85,9 +86,10 @@ export default function Login() {
     <div className="min-h-screen bg-background flex flex-col">
       <header className="bg-header border-b border-header-foreground/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="font-display text-xl text-header-foreground tracking-tight font-semibold">
-            Main Street <span className="text-header-accent font-normal">Insights</span>
-          </h1>
+          <div className="flex items-center gap-2">
+            <img src={twtLogo.url} alt="The Wait Times logo" width={768} height={768} className="h-12 w-auto" />
+            <h1 className="font-display text-xl text-header-foreground tracking-tight font-semibold">The Wait Times</h1>
+          </div>
           <Link
             to="/"
             className="text-header-foreground/70 hover:text-header-foreground text-sm font-body inline-flex items-center gap-1.5"
