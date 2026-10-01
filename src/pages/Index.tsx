@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import msiLogo from "@/assets/msi-logo.png.asset.json";
+import twtLogo from "@/assets/twt-logo.webp.asset.json";
 import { Home as HomeIcon, CalendarRange, CalendarDays, Gauge, Zap, Trophy, FileText, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/Home";
@@ -39,16 +39,16 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <img
-              src={msiLogo.url}
-              alt="Main Street Insights logo"
-              width={446}
-              height={512}
-              className="h-10 sm:h-14 md:h-16 w-auto shrink-0"
+              src={twtLogo.url}
+              alt="The Wait Times logo"
+              width={768}
+              height={768}
+              className="h-12 sm:h-16 md:h-20 w-auto shrink-0"
               loading="eager"
               decoding="async"
             />
             <h1 className="font-display text-base sm:text-xl md:text-2xl text-header-foreground tracking-tight font-semibold whitespace-nowrap">
-              Main Street <span className="text-header-accent font-normal">Insights</span>
+              The Wait Times
             </h1>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 text-sm font-body shrink-0">
@@ -134,7 +134,7 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="border-t border-border text-muted-foreground text-center py-6 font-body text-sm mt-12 pb-bottom-nav md:pb-0">
-        Main Street Insights © 2026
+        The Wait Times © 2026
       </footer>
 
       {/* Mobile bottom tab bar */}
