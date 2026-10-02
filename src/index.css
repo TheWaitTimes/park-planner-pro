@@ -7,7 +7,7 @@
 @layer base {
   :root {
     /* Navy Trust palette — professional, editorial */
-    --background: 220 25% 98%;
+    --background: 199 54% 93%;
     --foreground: 222 50% 12%;
 
     --card: 0 0% 100%;
@@ -45,9 +45,9 @@
     --park-hollywood: 35 55% 45%;
     --park-animal: 155 35% 32%;
 
-    --header-bg: 199 54% 93%;
-    --header-foreground: 222 60% 13%;
-    --header-accent: 222 60% 22%;
+    --header-bg: 211 36% 17%;
+    --header-foreground: 0 0% 100%;
+    --header-accent: 199 70% 72%;
 
     --gold-glow: 35 55% 50%;
     --gold-soft: 35 40% 75%;
