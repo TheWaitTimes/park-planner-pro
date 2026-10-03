@@ -1,24 +1,22 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import twtLogo from "@/assets/twt-logo.webp.asset.json";
-import { Home as HomeIcon, CalendarRange, CalendarDays, Gauge, Zap, Trophy, FileText, LogIn, LogOut, Sparkles, type LucideIcon } from "lucide-react";
+import { Home as HomeIcon, CalendarRange, CalendarDays, Gauge, Zap, Trophy, FileText, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/Home";
 import DaySimulator from "@/pages/DaySimulator";
 import DayOptimizer from "@/pages/DayOptimizer";
-import AiPlanner from "@/pages/AiPlanner";
 import LightningLanes from "@/pages/LightningLanes";
 import ParkCalendar from "@/pages/ParkCalendar";
 import Rankings from "@/pages/Rankings";
 import Blog from "@/pages/Blog";
 
-type Tab = "home" | "calendar" | "simulator" | "optimizer" | "planner" | "lanes" | "rankings" | "blog";
+type Tab = "home" | "calendar" | "simulator" | "optimizer" | "lanes" | "rankings" | "blog";
 
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: "home", label: "Home", icon: HomeIcon },
   { id: "simulator", label: "Day Simulator", icon: CalendarRange },
   { id: "optimizer", label: "Day Optimizer", icon: Gauge },
-  { id: "planner", label: "AI Planner", icon: Sparkles },
   { id: "rankings", label: "Rankings", icon: Trophy },
   { id: "lanes", label: "Lightning Lanes", icon: Zap },
   { id: "calendar", label: "Park Calendar", icon: CalendarDays },
@@ -129,7 +127,6 @@ export default function Index() {
         {activeTab === "simulator" && <DaySimulator initialPark={simulatorPark} />}
 
         {activeTab === "optimizer" && <DayOptimizer />}
-        {activeTab === "planner" && <AiPlanner />}
         {activeTab === "lanes" && <LightningLanes />}
         {activeTab === "rankings" && <Rankings />}
         {activeTab === "blog" && <Blog />}
@@ -145,7 +142,7 @@ export default function Index() {
         aria-label="Sections"
         className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-header border-t border-header-foreground/10 bottom-nav-safe"
       >
-        <div className="grid grid-cols-8">
+        <div className="grid grid-cols-7">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
