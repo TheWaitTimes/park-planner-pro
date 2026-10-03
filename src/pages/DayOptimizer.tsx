@@ -272,7 +272,7 @@ export default function DayOptimizer() {
         y += c.height + gap;
       }
       const link = document.createElement("a");
-      link.download = `day-optimizer-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.png`;
+      link.download = `day-planner-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.png`;
       link.href = out.toDataURL("image/png");
       link.click();
     } finally {
@@ -316,7 +316,7 @@ export default function DayOptimizer() {
         currentY += drawH2 + gap;
         firstOnPage = false;
       }
-      pdf.save(`day-optimizer-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.pdf`);
+      pdf.save(`day-planner-${primaryPark.toLowerCase().replace(/\s+/g, "-")}.pdf`);
     } finally {
       setExporting(null);
     }
