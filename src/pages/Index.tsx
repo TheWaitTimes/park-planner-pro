@@ -15,7 +15,7 @@ type Tab = "home" | "calendar" | "simulator" | "optimizer" | "lanes" | "rankings
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: "home", label: "Home", icon: HomeIcon },
   { id: "simulator", label: "Day Simulator", icon: CalendarRange },
-  { id: "optimizer", label: "Day Optimizer", icon: Gauge },
+  { id: "optimizer", label: "Day Planner", icon: Gauge },
   { id: "rankings", label: "Rankings", icon: Trophy },
   { id: "lanes", label: "Lightning Lanes", icon: Zap },
   { id: "calendar", label: "Park Calendar", icon: CalendarDays },

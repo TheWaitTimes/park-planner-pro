@@ -501,7 +501,7 @@ export default function DayOptimizer() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl md:text-4xl text-foreground mb-2 font-semibold tracking-tight">Day Optimizer</h1>
+      <h1 className="text-3xl md:text-4xl text-foreground mb-2 font-semibold tracking-tight">Day Planner</h1>
       <p className="font-body text-muted-foreground mb-8 max-w-2xl">
         Build your dream day — add rides to each part of the day, set your conditions, and run the report.
       </p>
@@ -715,7 +715,7 @@ export default function DayOptimizer() {
 
               <div ref={reportRef} className="space-y-4 bg-background p-3 rounded-lg">
                 <div data-pdf-section className="text-center pb-2 border-b border-border">
-                  <div className="font-display text-2xl text-foreground">Day Optimizer Report</div>
+                  <div className="font-display text-2xl text-foreground">Day Planner Report</div>
                   <div className="text-xs font-body text-muted-foreground">
                     {primaryPark}{hopUsed ? ` + ${hopPark}` : ""} · {month} · {crowd} crowds · {hours}h
                   </div>
