@@ -97,7 +97,7 @@ export default function Index() {
                   className={`h-auto rounded-none font-body text-sm md:text-[15px] font-medium px-3 sm:px-4 py-3 transition-colors inline-flex items-center gap-2 border-b-2 -mb-px shrink-0 snap-start whitespace-nowrap ${
                     isActive
                       ? "bg-tab-active text-header-accent border-header-accent hover:bg-tab-active"
-                      : "text-header-foreground border-transparent hover:bg-tab-active/40 hover:text-header-foreground"
+                      : "text-tab-foreground border-transparent hover:bg-tab-active/40 hover:text-tab-foreground"
                   }`}
                 >
                   <Icon className="w-4 h-4" strokeWidth={2} />
@@ -153,12 +153,12 @@ export default function Index() {
                 onClick={() => setActiveTab(tab.id)}
                 aria-current={isActive ? "page" : undefined}
                 className={`h-auto rounded-none flex flex-col items-center justify-center gap-1 min-h-[56px] px-1 py-2 font-body text-[10px] font-medium transition-colors ${
-                  isActive ? "bg-tab-active text-header-accent hover:bg-tab-active" : "text-header-foreground hover:bg-tab-active/40"
+                  isActive ? "bg-tab-active text-header-accent hover:bg-tab-active" : "text-tab-foreground hover:bg-tab-active/40"
                 }`}
               >
                 <Icon className="w-5 h-5" strokeWidth={2} />
                 <span className="leading-none truncate max-w-full">
-                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar").replace("Ride Optimizer", "Optimizer")}
+                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar").replace("Ride Optimizer", "Rides")}
                 </span>
               </Button>
             );
