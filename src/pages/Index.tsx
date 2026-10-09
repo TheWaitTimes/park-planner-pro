@@ -44,7 +44,7 @@ export default function Index() {
               alt="Bay Lake Insights Co. logo"
               width={2000}
               height={2000}
-              className="h-20 sm:h-24 md:h-28 w-auto shrink-0"
+              className="h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 object-contain shrink-0"
               loading="eager"
               decoding="async"
             />

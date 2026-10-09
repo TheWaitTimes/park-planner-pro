@@ -87,7 +87,7 @@ export default function Login() {
       <header className="bg-header border-b border-header-foreground/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 gap-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src={bayLakeLogo.url} alt="Bay Lake Insights Co. logo" width={768} height={768} className="h-20 w-auto shrink-0" />
+            <img src={bayLakeLogo.url} alt="Bay Lake Insights Co. logo" width={2000} height={2000} className="h-20 w-20 object-contain shrink-0" />
             <h1 className="font-display text-base sm:text-xl text-header-foreground font-semibold">Bay Lake Insights Co.</h1>
           </div>
           <Link

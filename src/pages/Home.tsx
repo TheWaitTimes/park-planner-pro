@@ -287,7 +287,7 @@ export default function Home({
           <Button variant="ghost"
             type="button"
             onClick={() => onOpenCalendar?.()}
-            className="font-body text-sm text-secondary underline hover:text-foreground"
+            className="h-auto whitespace-normal text-left justify-start px-0 font-body text-sm text-primary underline hover:text-foreground"
           >
             See open/close dates, holidays, and special events for every park
           </Button>
