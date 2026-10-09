@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { Lock, LockOpen, Ban, Sparkles, Clock, RotateCcw, Sun, Sunset, Moon } from "lucide-react";
+import { Lock, LockOpen, Ban, Sparkles, Clock, RotateCcw, Sun, Sunset, Moon, Users } from "lucide-react";
 import { PARKS, type Ride } from "@/data/parks";
+import { CROWD_SIZES, CROWD_SIZE_MULTIPLIER, crowdAdjustedWait, type CrowdSize } from "@/lib/parkModel";
 
 type Period = "morning" | "afternoon" | "evening";
 const PERIODS: { id: Period; label: string; icon: typeof Sun }[] = [
@@ -11,8 +12,9 @@ const PERIODS: { id: Period; label: string; icon: typeof Sun }[] = [
 const WALK_MIN = 10; // average walk between attractions
 const MAX_LOCKS = 3;
 
-const avgWait = (r: Ride, p: Period) => Math.round((r.waitTimes[p][0] + r.waitTimes[p][1]) / 2);
-const cost = (r: Ride, p: Period) => avgWait(r, p) + r.onRideTime + WALK_MIN;
+const baseWait = (r: Ride, p: Period) => Math.round((r.waitTimes[p][0] + r.waitTimes[p][1]) / 2);
+const avgWait = (r: Ride, p: Period, crowd: CrowdSize) => crowdAdjustedWait(baseWait(r, p), crowd);
+const cost = (r: Ride, p: Period, crowd: CrowdSize) => avgWait(r, p, crowd) + r.onRideTime + WALK_MIN;
 
 interface Result {
   rides: Ride[];
@@ -21,14 +23,14 @@ interface Result {
 }
 
 /** 0/1 knapsack: maximize number of rides, then time used, within the remaining budget. */
-function solve(pool: Ride[], locked: Ride[], budget: number, p: Period): Result {
-  const lockedCost = locked.reduce((s, r) => s + cost(r, p), 0);
+function solve(pool: Ride[], locked: Ride[], budget: number, p: Period, crowd: CrowdSize): Result {
+  const lockedCost = locked.reduce((s, r) => s + cost(r, p, crowd), 0);
   if (lockedCost > budget) return { rides: locked, used: lockedCost, feasible: false };
   const cap = budget - lockedCost;
   type Cell = { count: number; used: number; picks: number[] };
   let dp: Cell[] = Array.from({ length: cap + 1 }, () => ({ count: 0, used: 0, picks: [] }));
   pool.forEach((r, i) => {
-    const c = cost(r, p);
+    const c = cost(r, p, crowd);
     const next = dp.map((x) => x);
     for (let t = c; t <= cap; t++) {
       const prev = dp[t - c];
@@ -47,18 +49,20 @@ export default function RideOptimizer() {
   const parks = Object.keys(PARKS);
   const [park, setPark] = useState(parks[0]);
   const [period, setPeriod] = useState<Period>("morning");
+  const [crowd, setCrowd] = useState<CrowdSize>("Moderate");
   const [hours, setHours] = useState(3);
   const [locked, setLocked] = useState<string[]>([]);
   const [excluded, setExcluded] = useState<string[]>([]);
   const [result, setResult] = useState<Result | null>(null);
 
   const rides = useMemo(
-    () => [...PARKS[park].rides].sort((a, b) => avgWait(b, period) - avgWait(a, period)),
-    [park, period],
+    () => [...PARKS[park].rides].sort((a, b) => avgWait(b, period, crowd) - avgWait(a, period, crowd)),
+    [park, period, crowd],
   );
   const budget = Math.round(hours * 60);
   const lockedRides = rides.filter((r) => locked.includes(r.id));
-  const lockedCost = lockedRides.reduce((s, r) => s + cost(r, period), 0);
+  const lockedCost = lockedRides.reduce((s, r) => s + cost(r, period, crowd), 0);
+  const crowdPct = Math.round((CROWD_SIZE_MULTIPLIER[crowd] - 1) * 100);
 
   const reset = (fn: () => void) => {
     fn();
@@ -78,7 +82,7 @@ export default function RideOptimizer() {
 
   const run = () => {
     const pool = rides.filter((r) => !locked.includes(r.id) && !excluded.includes(r.id));
-    const res = solve(pool, lockedRides, budget, period);
+    const res = solve(pool, lockedRides, budget, period, crowd);
     // order by lowest wait first for the suggested sequence, locks kept on top
     setResult(res);
   };
@@ -90,12 +94,12 @@ export default function RideOptimizer() {
       <div>
         <h2 className="font-display text-2xl sm:text-3xl font-semibold text-foreground">Ride Optimizer</h2>
         <p className="font-body text-muted-foreground mt-1 max-w-2xl">
-          Pick a park and time of day, lock up to {MAX_LOCKS} must-do rides, set your time budget, and the optimizer
-          fills the rest with the lineup that gets you the most rides in that window.
+          Pick a park, time of day and how busy you expect the park to be, lock up to {MAX_LOCKS} must-do rides, set
+          your time budget, and the optimizer fills the rest with the lineup that gets you the most rides in that window.
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3 bg-card border border-border rounded-lg p-4 sm:p-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 bg-card border border-border rounded-lg p-4 sm:p-5">
         <div>
           <label className="font-body text-xs uppercase tracking-wide text-muted-foreground">Park</label>
           <select
@@ -121,6 +125,30 @@ export default function RideOptimizer() {
               </button>
             ))}
           </div>
+        </div>
+        <div>
+          <span className="font-body text-xs uppercase tracking-wide text-muted-foreground inline-flex items-center gap-1.5">
+            <Users className="w-3.5 h-3.5" /> Expected crowd size
+          </span>
+          <div className="mt-1 grid grid-cols-3 gap-1 rounded-md border border-input p-1">
+            {CROWD_SIZES.map((size) => (
+              <button
+                key={size}
+                onClick={() => reset(() => setCrowd(size))}
+                aria-pressed={crowd === size}
+                className={`min-h-[40px] rounded font-body text-sm font-medium transition-colors ${
+                  crowd === size ? "bg-secondary text-secondary-foreground" : "text-foreground hover:bg-muted"
+                }`}
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 font-body text-xs text-muted-foreground">
+            {crowdPct === 0
+              ? "Waits at their usual level."
+              : `Every wait runs ${crowdPct > 0 ? "up" : "down"} ${Math.abs(crowdPct)}%.`}
+          </p>
         </div>
         <div>
           <label className="font-body text-xs uppercase tracking-wide text-muted-foreground">
@@ -178,8 +206,8 @@ export default function RideOptimizer() {
                     <div className={`font-medium text-foreground truncate ${isEx ? "line-through" : ""}`}>{r.name}</div>
                     <div className="text-xs text-muted-foreground">{r.parkArea} · {r.onRideTime} min ride</div>
                   </div>
-                  <span className="w-14 text-right font-semibold tabular-nums">{avgWait(r, period)}m</span>
-                  <span className="w-12 text-right text-muted-foreground tabular-nums">{cost(r, period)}m</span>
+                  <span className="w-14 text-right font-semibold tabular-nums">{avgWait(r, period, crowd)}m</span>
+                  <span className="w-12 text-right text-muted-foreground tabular-nums">{cost(r, period, crowd)}m</span>
                   <div className="w-[88px] flex justify-end gap-1">
                     <button
                       onClick={() => toggleLock(r.id)}
@@ -210,6 +238,9 @@ export default function RideOptimizer() {
         {/* Lineup */}
         <div className="bg-card border border-border rounded-lg p-4 sm:p-5 h-fit lg:sticky lg:top-40">
           <h3 className="font-display text-lg font-semibold">Optimal lineup</h3>
+          <p className="font-body text-xs text-muted-foreground mt-1">
+            {park} · {periodLabel} · {crowd} crowds · {hours} hr
+          </p>
           {!result ? (
             <p className="font-body text-sm text-muted-foreground mt-2">Press Optimize to build your lineup.</p>
           ) : !result.feasible ? (
@@ -232,7 +263,7 @@ export default function RideOptimizer() {
                     <span className="w-6 h-6 rounded-full bg-muted text-xs inline-flex items-center justify-center shrink-0">{i + 1}</span>
                     <span className="flex-1 min-w-0 truncate">{r.name}</span>
                     {locked.includes(r.id) && <Lock className="w-3.5 h-3.5 text-primary shrink-0" />}
-                    <span className="text-muted-foreground tabular-nums inline-flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{cost(r, period)}m</span>
+                    <span className="text-muted-foreground tabular-nums inline-flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{cost(r, period, crowd)}m</span>
                   </li>
                 ))}
               </ol>
@@ -242,7 +273,8 @@ export default function RideOptimizer() {
             </>
           )}
           <p className="font-body text-xs text-muted-foreground mt-4">
-            Cost = average modeled wait + ride length + {WALK_MIN} min walking. The optimizer maximizes ride count, then uses as much of your time as possible.
+            Cost = average wait ({crowd.toLowerCase()} crowds, ×{CROWD_SIZE_MULTIPLIER[crowd]}) + ride length + {WALK_MIN} min walking.
+            The optimizer maximizes ride count, then uses as much of your time as possible.
           </p>
         </div>
       </div>
