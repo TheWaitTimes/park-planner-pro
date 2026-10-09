@@ -34,3 +34,22 @@ export function capWait(minutes: number): number {
 
 /** Rope drop: the very first ride of the day walks on compared to later in the morning. */
 export const ROPE_DROP_MULTIPLIER = 0.45;
+
+/**
+ * Expected crowd size → wait-time factor. Light days run shorter queues than the
+ * modelled averages, busy days run longer ones. Shared so every tool scales waits
+ * the same way.
+ */
+export const CROWD_SIZES = ["Light", "Moderate", "Busy"] as const;
+export type CrowdSize = (typeof CROWD_SIZES)[number];
+
+export const CROWD_SIZE_MULTIPLIER: Record<CrowdSize, number> = {
+  Light: 0.75,
+  Moderate: 1.0,
+  Busy: 1.35,
+};
+
+/** Scale a modelled average wait for the chosen crowd size, keeping it inside sane bounds. */
+export function crowdAdjustedWait(baseMinutes: number, crowd: CrowdSize): number {
+  return capWait(baseMinutes * CROWD_SIZE_MULTIPLIER[crowd]);
+}
