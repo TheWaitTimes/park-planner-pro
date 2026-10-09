@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Clock, CalendarRange, CalendarDays, Database } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { PARKS } from "@/data/parks";
 import { cachedFetch, readCacheMeta, TTL_30_MIN } from "@/lib/liveCache";
 
@@ -159,26 +160,26 @@ export default function Home({
 
   return (
     <div className="space-y-8">
-      <div>
+      <div className="border-b border-border pb-6">
         <h1 className="font-display text-3xl md:text-4xl font-semibold text-foreground">
-          Welcome to The Wait Times
+          Bay Lake Insights Co.
         </h1>
-        <p className="font-body text-muted-foreground mt-2">
-          Data driven content from the most magical street on earth!
+        <p className="font-body text-secondary mt-3 uppercase tracking-[0.15em] text-sm font-semibold">
+          Navigate · Plan · Explore
         </p>
       </div>
 
       {/* Weather */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="font-display text-xl font-semibold text-foreground">Live Weather · Walt Disney World</h2>
-          <button
+          <Button variant="ghost"
             onClick={() => load(true)}
             disabled={loading}
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} /> Refresh
-          </button>
+          </Button>
         </div>
 
         {error && (
@@ -204,21 +205,21 @@ export default function Home({
         </div>
 
         {showClosures && (
-          <div className="mt-6 rounded-lg border border-amber-300 bg-amber-50 p-5">
-            <div className="flex items-center gap-2 mb-3 text-amber-900">
+          <div className="mt-6 rounded-lg border border-gold/50 bg-gold/10 p-5">
+            <div className="flex items-center gap-2 mb-3 text-warning">
               <AlertTriangle className="w-5 h-5" />
               <h3 className="font-display font-semibold">
                 Potential Ride Closures Due to Weather
               </h3>
             </div>
-            <p className="text-sm text-amber-800 mb-3">
-              Rain chance is {weather!.precipProb}%. These outdoor attractions may temporarily close during storms.
+            <p className="text-sm text-warning mb-3">
+              Rain chance is {weather?.precipProb}%. These outdoor attractions may temporarily close during storms.
             </p>
-            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-amber-900">
+            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1 text-sm text-warning">
               {weatherRides.map((r) => (
                 <li key={`${r.park}-${r.name}`} className="flex justify-between">
                   <span>{r.name}</span>
-                  <span className="text-amber-700">{r.park}</span>
+                  <span className="text-muted-foreground">{r.park}</span>
                 </li>
               ))}
             </ul>
@@ -228,7 +229,7 @@ export default function Home({
 
       {/* Wait Times */}
       <section>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="font-display text-xl font-semibold text-foreground">Live Wait Times</h2>
           <span className="text-xs text-muted-foreground">
             {updated ? `Updated ${updated.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · auto-refresh 30 min` : ""}
@@ -236,8 +237,8 @@ export default function Home({
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <WaitList title="Longest Waits" icon={<TrendingUp className="w-5 h-5 text-rose-600" />} rows={top5Long} tone="long" loading={loading && !waits.length} />
-          <WaitList title="Shortest Waits" icon={<TrendingDown className="w-5 h-5 text-emerald-600" />} rows={top5Short} tone="short" loading={loading && !waits.length} />
+          <WaitList title="Longest Waits" icon={<TrendingUp className="w-5 h-5 text-warning" />} rows={top5Long} tone="long" loading={loading && !waits.length} />
+          <WaitList title="Shortest Waits" icon={<TrendingDown className="w-5 h-5 text-success" />} rows={top5Short} tone="short" loading={loading && !waits.length} />
         </div>
       </section>
 
@@ -248,13 +249,13 @@ export default function Home({
             <Clock className="w-5 h-5 text-secondary" />
             <h2 className="font-display text-xl font-semibold text-foreground">Today's Park Hours</h2>
           </div>
-          <button
+          <Button variant="ghost"
             type="button"
             onClick={() => onOpenCalendar?.()}
             className="inline-flex items-center gap-1.5 min-h-[44px] rounded-lg border border-border bg-card px-4 font-body text-sm font-medium text-secondary transition-colors hover:border-secondary hover:bg-accent/40"
           >
             <CalendarDays className="w-4 h-4" /> View full park calendar
-          </button>
+          </Button>
         </div>
 
         {loading && !hours.length ? (
@@ -262,12 +263,12 @@ export default function Home({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {hours.map((h) => (
-              <button
+              <Button variant="ghost"
                 key={h.park}
                 type="button"
                 onClick={() => onPlanPark?.(h.park)}
                 aria-label={`Plan a day at ${h.park} in the Day Simulator`}
-                className="text-left rounded-lg border border-border bg-card p-5 transition-colors hover:border-secondary hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="h-auto whitespace-normal block text-left rounded-lg border border-border bg-card p-5 transition-colors hover:border-secondary hover:bg-accent/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div className="text-sm text-muted-foreground mb-1">{h.park}</div>
                 <div className="font-display text-xl font-semibold text-foreground">
@@ -277,24 +278,24 @@ export default function Home({
                 <div className="text-xs text-secondary mt-3 flex items-center gap-1">
                   <CalendarRange className="w-3.5 h-3.5" /> Plan this day
                 </div>
-              </button>
+              </Button>
             ))}
           </div>
         )}
 
         <div className="mt-4">
-          <button
+          <Button variant="ghost"
             type="button"
             onClick={() => onOpenCalendar?.()}
-            className="font-body text-sm text-secondary underline hover:text-foreground"
+            className="h-auto whitespace-normal text-left justify-start px-0 font-body text-sm text-primary underline hover:text-foreground"
           >
             See open/close dates, holidays, and special events for every park
-          </button>
+          </Button>
         </div>
       </section>
 
       {/* Data Sources */}
-      <section className="rounded-lg border border-border bg-card p-5">
+      <section className="border-t border-border pt-6">
         <div className="flex items-center gap-2 mb-3">
           <Database className="w-5 h-5 text-secondary" />
           <h2 className="font-display text-base font-semibold text-foreground">Data Sources</h2>
@@ -380,7 +381,7 @@ function WaitList({
               </div>
               <div
                 className={`font-display font-semibold text-lg ${
-                  tone === "long" ? "text-rose-600" : "text-emerald-600"
+                  tone === "long" ? "text-warning" : "text-success"
                 }`}
               >
                 {r.wait}m
