@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import twtLogo from "@/assets/twt-logo.webp.asset.json";
+import bayLakeLogo from "@/assets/bay-lake-logo.png.asset.json";
+import { Button } from "@/components/ui/button";
 import { Home as HomeIcon, CalendarRange, CalendarDays, Gauge, Zap, Trophy, Target, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/Home";
@@ -39,16 +40,16 @@ export default function Index() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <img
-              src={twtLogo.url}
-              alt="The Wait Times logo"
-              width={768}
-              height={768}
-              className="h-12 sm:h-16 md:h-20 w-auto shrink-0"
+              src={bayLakeLogo.url}
+              alt="Bay Lake Insights Co. logo"
+              width={2000}
+              height={2000}
+              className="h-20 sm:h-24 md:h-28 w-auto shrink-0"
               loading="eager"
               decoding="async"
             />
-            <h1 className="font-display text-base sm:text-xl md:text-2xl text-header-foreground tracking-tight font-semibold whitespace-nowrap">
-              The Wait Times
+            <h1 className="font-display text-base sm:text-xl md:text-2xl text-header-foreground font-semibold leading-tight">
+              Bay Lake Insights Co.
             </h1>
           </div>
           <div className="flex items-center gap-2 sm:gap-3 text-sm font-body shrink-0">
@@ -62,14 +63,14 @@ export default function Index() {
                 <span className="hidden md:inline text-header-foreground/60 truncate max-w-[180px]">
                   {session.user.email}
                 </span>
-                <button
+                <Button variant="ghost"
                   onClick={signOut}
                   aria-label="Sign out"
                   className="text-header-foreground/80 hover:text-header-foreground inline-flex items-center gap-1.5 min-h-[44px] px-1"
                 >
                   <LogOut className="w-5 h-5 sm:w-4 sm:h-4" />
                   <span className="hidden sm:inline">Sign out</span>
-                </button>
+                </Button>
               </>
             ) : (
               <Link
@@ -84,24 +85,24 @@ export default function Index() {
           </div>
         </div>
         {/* Tab Navigation */}
-        <nav className="hidden md:block border-t border-header-foreground/10">
+        <nav className="hidden md:block bg-tab border-t border-header-foreground/10">
           <div className="max-w-7xl mx-auto px-2 sm:px-6 flex gap-1 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
               return (
-                <button
+                <Button variant="ghost"
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`font-body text-sm md:text-[15px] font-medium px-3 sm:px-4 py-3 transition-colors inline-flex items-center gap-2 border-b-2 -mb-px shrink-0 snap-start whitespace-nowrap ${
+                  className={`h-auto rounded-none font-body text-sm md:text-[15px] font-medium px-3 sm:px-4 py-3 transition-colors inline-flex items-center gap-2 border-b-2 -mb-px shrink-0 snap-start whitespace-nowrap ${
                     isActive
-                      ? "text-header-accent border-header-accent"
-                      : "text-header-foreground/70 border-transparent hover:text-header-foreground"
+                      ? "bg-tab-active text-header-accent border-header-accent hover:bg-tab-active"
+                      : "text-header-foreground border-transparent hover:bg-tab-active/40 hover:text-header-foreground"
                   }`}
                 >
                   <Icon className="w-4 h-4" strokeWidth={2} />
                   {tab.label}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -134,32 +135,32 @@ export default function Index() {
 
       {/* Footer */}
       <footer className="border-t border-border text-muted-foreground text-center py-6 font-body text-sm mt-12 pb-bottom-nav md:pb-0">
-        The Wait Times © 2026
+        Bay Lake Insights Co. © 2026
       </footer>
 
       {/* Mobile bottom tab bar */}
       <nav
         aria-label="Sections"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-header border-t border-header-foreground/10 bottom-nav-safe"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-tab border-t border-header-foreground/10 bottom-nav-safe"
       >
         <div className="grid grid-cols-7">
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
-              <button
+              <Button variant="ghost"
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 aria-current={isActive ? "page" : undefined}
-                className={`flex flex-col items-center justify-center gap-1 min-h-[56px] px-1 py-2 font-body text-[10px] font-medium transition-colors ${
-                  isActive ? "text-header-accent" : "text-header-foreground/70"
+                className={`h-auto rounded-none flex flex-col items-center justify-center gap-1 min-h-[56px] px-1 py-2 font-body text-[10px] font-medium transition-colors ${
+                  isActive ? "bg-tab-active text-header-accent hover:bg-tab-active" : "text-header-foreground hover:bg-tab-active/40"
                 }`}
               >
                 <Icon className="w-5 h-5" strokeWidth={2} />
                 <span className="leading-none truncate max-w-full">
                   {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar").replace("Ride Optimizer", "Optimizer")}
                 </span>
-              </button>
+              </Button>
             );
           })}
         </div>
