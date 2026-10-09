@@ -51,7 +51,11 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        tab: { DEFAULT: "hsl(var(--tab-bg))", active: "hsl(var(--tab-active))" },
+        tab: {
+          DEFAULT: "hsl(var(--tab-bg))",
+          active: "hsl(var(--tab-active))",
+          foreground: "hsl(var(--tab-foreground))",
+        },
         success: "hsl(var(--success))",
         warning: "hsl(var(--warning))",
         header: {
