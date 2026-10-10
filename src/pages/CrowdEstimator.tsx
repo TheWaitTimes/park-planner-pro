@@ -100,7 +100,7 @@ export default function CrowdEstimator() {
               <li key={r.name} className="py-2.5 flex items-center justify-between gap-3">
                 <span className="font-body text-sm text-foreground min-w-0">{r.name}</span>
                 <span className="font-body text-sm text-right shrink-0">
-                  <strong className="text-foreground">{r.low}–{r.high} min</strong>
+                  <strong className="text-foreground">{r.low === r.high ? r.low : `${r.low}–${r.high}`} min</strong>
                   <span className="block text-xs text-muted-foreground">typical {r.typical}</span>
                 </span>
               </li>
