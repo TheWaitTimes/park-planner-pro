@@ -17,13 +17,13 @@ type Tab = "home" | "calendar" | "simulator" | "optimizer" | "lanes" | "rankings
 
 const TABS: { id: Tab; label: string; icon: LucideIcon }[] = [
   { id: "home", label: "Home", icon: HomeIcon },
+  { id: "calendar", label: "Park Calendar", icon: CalendarDays },
+  { id: "lanes", label: "Lightning Lanes", icon: Zap },
   { id: "simulator", label: "Day Simulator", icon: CalendarRange },
   { id: "optimizer", label: "Day Planner", icon: Gauge },
-  { id: "rideopt", label: "Ride Optimizer", icon: Target },
-  { id: "rankings", label: "Rankings", icon: Trophy },
-  { id: "lanes", label: "Lightning Lanes", icon: Zap },
-  { id: "calendar", label: "Park Calendar", icon: CalendarDays },
   { id: "crowds", label: "Crowd Estimator", icon: Users },
+  { id: "rideopt", label: "Ride Optimizer", icon: Target },
+  { id: "rankings", label: "Rankings Maker", icon: Trophy },
 ];
 
 
@@ -161,7 +161,7 @@ export default function Index() {
               >
                 <Icon className="w-5 h-5" strokeWidth={2} />
                 <span className="leading-none truncate max-w-full">
-                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar").replace("Ride Optimizer", "Rides").replace("Crowd Estimator", "Crowds")}
+                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar").replace("Ride Optimizer", "Rides").replace("Crowd Estimator", "Crowds").replace("Rankings Maker", "Rankings")}
                 </span>
               </Button>
             );
