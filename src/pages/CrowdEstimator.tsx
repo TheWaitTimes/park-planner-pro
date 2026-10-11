@@ -110,9 +110,9 @@ export default function CrowdEstimator() {
       </div>
 
       <section className="font-body text-xs text-muted-foreground border-t border-border pt-4">
-        Data source: The Wait Times historical posted standby waits (
-        <a className="underline text-primary" href="https://github.com/TheWaitTimes/park_data" target="_blank" rel="noreferrer">park_data on GitHub</a>
-        ), {h?.days ?? 0} recorded days for {park} between {h?.from} and {h?.to}, collected from{" "}
+        Data source:{" "}
+        <a className="underline text-primary" href="https://thrill-data.com" target="_blank" rel="noreferrer">Thrill-Data.com</a>{" "}
+        &amp;{" "}
         <a className="underline text-primary" href="https://www.themeparks.wiki/" target="_blank" rel="noreferrer">themeparks.wiki</a>.
         Estimates combine month, day-of-week and holiday patterns — always check the official app on the day.
       </section>
