@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Users, Sun, Sunset, Moon, CalendarDays, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ESTIMATOR_PARKS, CROWD_HISTORY, estimateCrowd, rideRanges, type Period } from "@/lib/crowdEstimator";
+import { ESTIMATOR_PARKS, estimateCrowd, rideRanges, type Period } from "@/lib/crowdEstimator";
 
 const PERIODS: { id: Period; label: string; icon: typeof Sun }[] = [
   { id: "morning", label: "Morning", icon: Sun },
@@ -25,7 +25,6 @@ export default function CrowdEstimator() {
   }, [date]);
   const est = useMemo(() => estimateCrowd(park, d), [park, d]);
   const ranges = useMemo(() => rideRanges(park, period, est.index), [park, period, est.index]);
-  const h = CROWD_HISTORY[park];
   const pct = ((est.score - 1) / 9) * 100;
 
   return (
