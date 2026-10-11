@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Users, Sun, Sunset, Moon, CalendarDays, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ESTIMATOR_PARKS, CROWD_HISTORY, estimateCrowd, rideRanges, type Period } from "@/lib/crowdEstimator";
+import { ESTIMATOR_PARKS, estimateCrowd, rideRanges, type Period } from "@/lib/crowdEstimator";
 
 const PERIODS: { id: Period; label: string; icon: typeof Sun }[] = [
   { id: "morning", label: "Morning", icon: Sun },
@@ -25,7 +25,6 @@ export default function CrowdEstimator() {
   }, [date]);
   const est = useMemo(() => estimateCrowd(park, d), [park, d]);
   const ranges = useMemo(() => rideRanges(park, period, est.index), [park, period, est.index]);
-  const h = CROWD_HISTORY[park];
   const pct = ((est.score - 1) / 9) * 100;
 
   return (
@@ -110,9 +109,9 @@ export default function CrowdEstimator() {
       </div>
 
       <section className="font-body text-xs text-muted-foreground border-t border-border pt-4">
-        Data source: The Wait Times historical posted standby waits (
-        <a className="underline text-primary" href="https://github.com/TheWaitTimes/park_data" target="_blank" rel="noreferrer">park_data on GitHub</a>
-        ), {h?.days ?? 0} recorded days for {park} between {h?.from} and {h?.to}, collected from{" "}
+        Data source:{" "}
+        <a className="underline text-primary" href="https://thrill-data.com" target="_blank" rel="noreferrer">Thrill-Data.com</a>{" "}
+        &amp;{" "}
         <a className="underline text-primary" href="https://www.themeparks.wiki/" target="_blank" rel="noreferrer">themeparks.wiki</a>.
         Estimates combine month, day-of-week and holiday patterns — always check the official app on the day.
       </section>
