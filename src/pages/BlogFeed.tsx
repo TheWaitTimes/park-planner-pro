@@ -197,31 +197,7 @@ export default function BlogFeed() {
   })();
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="bg-header border-b border-header-foreground/10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 gap-4 flex items-center justify-between">
-          <div className="flex items-center gap-2 min-w-0">
-            <img
-              src={bayLakeLogo.url}
-              alt="Bay Lake Insights Co. logo"
-              width={2000}
-              height={2000}
-              className="h-20 w-20 object-contain shrink-0"
-            />
-            <h1 className="font-display text-base sm:text-xl text-header-foreground font-semibold">
-              Bay Lake Insights Co.
-            </h1>
-          </div>
-          <Link
-            to="/"
-            className="shrink-0 text-header-foreground/70 hover:text-header-foreground text-sm font-body inline-flex items-center gap-1.5"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to site
-          </Link>
-        </div>
-      </header>
-
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+    <div className="w-full">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-secondary">
