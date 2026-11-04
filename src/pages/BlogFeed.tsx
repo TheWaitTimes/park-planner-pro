@@ -132,29 +132,27 @@ function SkeletonCard() {
 
 function SubscribePanel() {
   return (
-    <section className="mt-12 rounded-lg border border-border bg-card p-6">
-      <div className="flex items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-secondary/10">
-          <Mail className="h-4 w-4 text-secondary" />
+    <section className="mt-12 rounded-lg border border-border bg-card p-6 sm:p-8">
+      <div className="mx-auto flex max-w-xl flex-col items-center text-center">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary/10">
+          <Mail className="h-5 w-5 text-secondary" />
         </div>
-        <div>
-          <h2 className="font-display text-lg font-semibold text-foreground">
-            Get every post by email
-          </h2>
-          <p className="mt-1 font-body text-sm text-muted-foreground">
-            Subscribe to {SUBSTACK_NAME} on Substack and new posts arrive in your inbox the
-            moment they go live.
-          </p>
-        </div>
+        <h2 className="mt-3 font-display text-lg font-semibold text-foreground">
+          Get every post by email
+        </h2>
+        <p className="mt-1 font-body text-sm text-muted-foreground">
+          Subscribe to {SUBSTACK_NAME} on Substack and new posts arrive in your inbox the moment
+          they go live.
+        </p>
+        <iframe
+          src={SUBSTACK_EMBED_URL}
+          title={`${SUBSTACK_NAME} on Substack`}
+          frameBorder={0}
+          scrolling="no"
+          loading="lazy"
+          className="mt-6 h-[320px] w-full max-w-[480px] rounded-lg border border-border bg-card"
+        />
       </div>
-      <iframe
-        src={SUBSTACK_EMBED_URL}
-        title={`${SUBSTACK_NAME} on Substack`}
-        frameBorder={0}
-        scrolling="no"
-        loading="lazy"
-        className="mt-5 h-[320px] w-full max-w-[480px] rounded-lg border border-border bg-card"
-      />
     </section>
   );
 }

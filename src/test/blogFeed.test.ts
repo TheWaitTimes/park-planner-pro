@@ -60,6 +60,13 @@ describe("normalizePosts", () => {
     expect(post.wordcount).toBe(0);
   });
 
+  it("drops placeholder subtitles that carry no words", () => {
+    const [post] = normalizePosts([
+      { title: "Open Thread 458", subtitle: "...", url: "https://baylakeinsights.substack.com/p/open-thread-458" },
+    ]);
+    expect(post.subtitle).toBe("");
+  });
+
   it("drops entries with no title and non-array payloads", () => {
     expect(normalizePosts([{ subtitle: "no title here" }, null, 7])).toEqual([]);
     expect(normalizePosts(undefined)).toEqual([]);
