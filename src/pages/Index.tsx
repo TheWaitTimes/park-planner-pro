@@ -161,7 +161,7 @@ export default function Index() {
               >
                 <Icon className="w-5 h-5" strokeWidth={2} />
                 <span className="leading-none truncate max-w-full">
-                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Calendar").replace("Ride Optimizer", "Rides").replace("Crowd Estimator", "Crowds").replace("Rankings Maker", "Rankings")}
+                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Hours").replace("Simulator", "Sim").replace("Ride Optimizer", "Rides").replace("Crowd Estimator", "Crowds").replace("Rankings Maker", "Ranks")}
                 </span>
               </Button>
             );
