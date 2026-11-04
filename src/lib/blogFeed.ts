@@ -34,6 +34,15 @@ export function formatPostDate(iso: string | null): string {
 }
 
 /**
+ * Substack authors often leave the subtitle as a bare placeholder such as "..." —
+ * keep only excerpts that actually carry words so cards don't show junk.
+ */
+function cleanExcerpt(value: unknown): string {
+  const text = typeof value === "string" ? value.trim() : "";
+  return /[a-z]/i.test(text) ? text : "";
+}
+
+/**
  * Accepts either the shaped posts from the backend function or raw Substack
  * records, and drops anything unusable so one bad entry can't break the grid.
  */
@@ -57,7 +66,7 @@ export function normalizePosts(raw: unknown): BlogPost[] {
     posts.push({
       id: (item.id as string | number) ?? slug ?? title,
       title,
-      subtitle: typeof item.subtitle === "string" ? item.subtitle.trim() : "",
+      subtitle: cleanExcerpt(item.subtitle),
       url,
       date:
         (typeof item.date === "string" && item.date) ||

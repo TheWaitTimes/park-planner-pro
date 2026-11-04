@@ -41,7 +41,7 @@ function shapePost(post: RawPost) {
   return {
     id: post.id ?? post.slug ?? post.title ?? "",
     title: post.title ?? "Untitled",
-    subtitle: post.subtitle ?? "",
+    subtitle: post.subtitle ?? post.description ?? "",
     url: post.canonical_url ?? `${SUBSTACK_BASE}/p/${post.slug ?? ""}`,
     date: post.post_date ?? post.updated_at ?? null,
     cover: post.cover_image ?? null,
