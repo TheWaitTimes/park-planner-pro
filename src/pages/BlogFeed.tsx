@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import {
-  ArrowLeft,
   ArrowUpRight,
   Mail,
   Newspaper,
@@ -157,7 +155,7 @@ function SubscribePanel() {
   );
 }
 
-export default function BlogFeed() {
+export function BlogFeedContent() {
   const [status, setStatus] = useState<Status>("loading");
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
@@ -285,11 +283,6 @@ export default function BlogFeed() {
           </a>
           . This page refreshes every 30 minutes.
         </p>
-      </main>
-
-      <footer className="border-t border-border text-muted-foreground text-center py-6 font-body text-sm mt-12">
-        Bay Lake Insights Co. © 2026
-      </footer>
     </div>
   );
 }
