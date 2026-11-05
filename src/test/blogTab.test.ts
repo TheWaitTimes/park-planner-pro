@@ -23,6 +23,6 @@ describe("Blog tab in the navigation", () => {
   });
 
   it("keeps /blog opening on the Blog tab", () => {
-    expect(app).toMatch(/<Route path="\/blog" element=\{<Index initialTab="blog" \/> \} \/>/);
+    expect(app).toMatch(/<Route path="\/blog" element=\{<Index initialTab="blog" \/>\s*\} \/>/);
   });
 });
