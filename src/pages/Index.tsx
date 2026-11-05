@@ -91,7 +91,7 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
         </div>
         {/* Tab Navigation */}
         <nav className="hidden md:block bg-tab border-t border-header-foreground/10">
-          <div className="max-w-7xl mx-auto px-2 sm:px-6 flex gap-1 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 flex gap-0.5 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const isActive = activeTab === tab.id;
@@ -99,7 +99,7 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
                 <Button variant="ghost"
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`h-auto rounded-none font-body text-sm md:text-[15px] font-medium px-3 sm:px-4 py-3 transition-colors inline-flex items-center gap-2 border-b-2 -mb-px shrink-0 snap-start whitespace-nowrap ${
+                  className={`h-auto rounded-none font-body text-sm md:text-[15px] font-medium px-2.5 py-3 transition-colors inline-flex items-center gap-1.5 border-b-2 -mb-px shrink-0 snap-start whitespace-nowrap ${
                     isActive
                       ? "bg-tab-active text-header-accent border-header-accent hover:bg-tab-active"
                       : "text-tab-foreground border-transparent hover:bg-tab-active/40 hover:text-tab-foreground"
@@ -165,7 +165,7 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
               >
                 <Icon className="w-5 h-5" strokeWidth={2} />
                 <span className="leading-none truncate max-w-full">
-                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Hours").replace("Simulator", "Sim").replace("Ride Optimizer", "Rides").replace("Crowd Estimator", "Crowds").replace("Rankings Maker", "Ranks")}
+                  {tab.label.replace("Day ", "").replace("Lightning Lanes", "Lanes").replace("Park Calendar", "Hours").replace("Simulator", "Sim").replace("Planner", "Plan").replace("Ride Optimizer", "Rides").replace("Crowd Estimator", "Crowd").replace("Rankings Maker", "Ranks")}
                 </span>
               </Button>
             );
