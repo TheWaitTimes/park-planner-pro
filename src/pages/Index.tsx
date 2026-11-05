@@ -4,6 +4,10 @@ import bayLakeLogo from "@/assets/bay-lake-logo.png.asset.json";
 import { Button } from "@/components/ui/button";
 import { Home as HomeIcon, CalendarRange, CalendarDays, Gauge, Zap, Trophy, Target, Users, Newspaper, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription } from "@/hooks/useSubscription";
+import { supabase } from "@/integrations/supabase/client";
+import { isPaidTab } from "@/lib/plans";
+import Paywall from "@/components/Paywall";
 import Home from "@/pages/Home";
 import DaySimulator from "@/pages/DaySimulator";
 import DayOptimizer from "@/pages/DayOptimizer";
@@ -35,6 +39,14 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
   const [simulatorPark, setSimulatorPark] = useState<string | undefined>(undefined);
   const [calendarPark, setCalendarPark] = useState<string | undefined>(undefined);
   const { session, isAdmin, signOut } = useAuth();
+  const { subscribed, plan } = useSubscription();
+  const hasPro = subscribed || isAdmin;
+  const locked = isPaidTab(activeTab) && !hasPro;
+
+  const openPortal = async () => {
+    const { data } = await supabase.functions.invoke("customer-portal");
+    if (data?.url) window.open(data.url, "_blank");
+  };
 
 
   return (
@@ -64,6 +76,16 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
                   <span className="hidden sm:inline-flex items-center text-[11px] uppercase tracking-wide font-semibold text-header-accent border border-header-accent/40 rounded px-2 py-0.5">
                     Admin
                   </span>
+                )}
+                {subscribed && (
+                  <span className="hidden sm:inline-flex items-center text-[11px] uppercase tracking-wide font-semibold text-header-accent border border-header-accent/40 rounded px-2 py-0.5">
+                    Pro
+                  </span>
+                )}
+                {subscribed && plan !== "lifetime" && (
+                  <Button variant="ghost" onClick={openPortal} className="text-header-foreground/80 hover:text-header-foreground min-h-[44px] px-1 hidden sm:inline-flex">
+                    Billing
+                  </Button>
                 )}
                 <span className="hidden md:inline text-header-foreground/60 truncate max-w-[180px]">
                   {session.user.email}
@@ -130,13 +152,18 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
           />
         )}
         {activeTab === "calendar" && <ParkCalendar initialPark={calendarPark} />}
-        {activeTab === "simulator" && <DaySimulator initialPark={simulatorPark} />}
-
-        {activeTab === "optimizer" && <DayOptimizer />}
-        {activeTab === "rideopt" && <RideOptimizer />}
+        {locked ? (
+          <Paywall toolName={TABS.find((t) => t.id === activeTab)!.label} />
+        ) : (
+          <>
+            {activeTab === "simulator" && <DaySimulator initialPark={simulatorPark} />}
+            {activeTab === "optimizer" && <DayOptimizer />}
+            {activeTab === "rideopt" && <RideOptimizer />}
+            {activeTab === "crowds" && <CrowdEstimator />}
+          </>
+        )}
         {activeTab === "lanes" && <LightningLanes />}
         {activeTab === "rankings" && <Rankings />}
-        {activeTab === "crowds" && <CrowdEstimator />}
         {activeTab === "blog" && <BlogFeedContent />}
       </main>
 
