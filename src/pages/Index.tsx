@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Home as HomeIcon, CalendarRange, CalendarDays, Gauge, Zap, Trophy, Target, Users, Newspaper, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { supabase } from "@/integrations/supabase/client";
 import { isPaidTab } from "@/lib/plans";
 import Paywall from "@/components/Paywall";
 import Home from "@/pages/Home";
@@ -42,11 +41,6 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
   const { subscribed, plan } = useSubscription();
   const hasPro = subscribed || isAdmin;
   const locked = isPaidTab(activeTab) && !hasPro;
-
-  const openPortal = async () => {
-    const { data } = await supabase.functions.invoke("customer-portal");
-    if (data?.url) window.open(data.url, "_blank");
-  };
 
 
   return (
