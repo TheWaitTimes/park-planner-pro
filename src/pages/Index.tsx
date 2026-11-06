@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Home as HomeIcon, CalendarRange, CalendarDays, Gauge, Zap, Trophy, Target, Users, Newspaper, LogIn, LogOut, type LucideIcon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
-import { supabase } from "@/integrations/supabase/client";
 import { isPaidTab } from "@/lib/plans";
 import Paywall from "@/components/Paywall";
 import Home from "@/pages/Home";
@@ -43,11 +42,6 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
   const hasPro = subscribed || isAdmin;
   const locked = isPaidTab(activeTab) && !hasPro;
 
-  const openPortal = async () => {
-    const { data } = await supabase.functions.invoke("customer-portal");
-    if (data?.url) window.open(data.url, "_blank");
-  };
-
 
   return (
     <div className="min-h-screen bg-background">
@@ -82,10 +76,10 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
                     Pro
                   </span>
                 )}
-                {subscribed && plan !== "lifetime" && (
-                  <Button variant="ghost" onClick={openPortal} className="text-header-foreground/80 hover:text-header-foreground min-h-[44px] px-1 hidden sm:inline-flex">
-                    Billing
-                  </Button>
+                {subscribed && (
+                  <Link to="/account" className="text-header-foreground/80 hover:text-header-foreground inline-flex items-center min-h-[44px] px-1">
+                    My Pro
+                  </Link>
                 )}
                 <span className="hidden md:inline text-header-foreground/60 truncate max-w-[180px]">
                   {session.user.email}

@@ -21,7 +21,12 @@ Deno.serve(async (req) => {
         const plan = price === PLANS.yearly.price ? "yearly" : price === PLANS.monthly.price ? "monthly" : null;
         if (plan) {
           const end = item?.current_period_end ?? (s as any).current_period_end;
-          return json({ subscribed: true, plan, subscription_end: end ? new Date(end * 1000).toISOString() : null });
+          return json({
+            subscribed: true,
+            plan,
+            subscription_end: end ? new Date(end * 1000).toISOString() : null,
+            cancel_at_period_end: !!s.cancel_at_period_end,
+          });
         }
       }
       const pis = await stripe.paymentIntents.list({ customer: c.id, limit: 100 });
