@@ -82,10 +82,10 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
                     Pro
                   </span>
                 )}
-                {subscribed && plan !== "lifetime" && (
-                  <Button variant="ghost" onClick={openPortal} className="text-header-foreground/80 hover:text-header-foreground min-h-[44px] px-1 hidden sm:inline-flex">
-                    Billing
-                  </Button>
+                {subscribed && (
+                  <Link to="/account" className="text-header-foreground/80 hover:text-header-foreground inline-flex items-center min-h-[44px] px-1">
+                    My Pro
+                  </Link>
                 )}
                 <span className="hidden md:inline text-header-foreground/60 truncate max-w-[180px]">
                   {session.user.email}
