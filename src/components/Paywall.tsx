@@ -31,7 +31,7 @@ export default function Paywall({ toolName }: { toolName: string }) {
         <Lock className="h-5 w-5 text-secondary" />
       </div>
       <h2 className="mt-4 font-display text-2xl sm:text-3xl font-semibold text-foreground">
-        {toolName} is a Pro tool
+        {toolName === "Pro" ? "Go Pro" : `${toolName} is a Pro tool`}
       </h2>
       <p className="mt-2 font-body text-muted-foreground">
         Pro unlocks the Day Simulator, Day Planner, Crowd Estimator and Ride Optimizer.
