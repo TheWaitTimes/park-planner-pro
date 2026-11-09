@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { isPaidTab } from "@/lib/plans";
 import Paywall from "@/components/Paywall";
+import SocialLinks from "@/components/SocialLinks";
 import Home from "@/pages/Home";
 import DaySimulator from "@/pages/DaySimulator";
 import DayOptimizer from "@/pages/DayOptimizer";
@@ -162,8 +163,13 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border text-muted-foreground text-center py-6 font-body text-sm mt-12 pb-bottom-nav md:pb-0">
-        Bay Lake Insights Co. © 2026
+      <footer className="border-t border-border mt-12 py-8 pb-bottom-nav md:pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col items-center gap-4">
+          <SocialLinks />
+          <p className="text-muted-foreground text-center font-body text-sm">
+            Bay Lake Insights Co. © 2026
+          </p>
+        </div>
       </footer>
 
       {/* Mobile bottom tab bar */}
