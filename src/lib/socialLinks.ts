@@ -12,15 +12,28 @@ export const SOCIAL_PLATFORMS: { id: SocialPlatform; label: string }[] = [
 
 export type SocialLinks = Partial<Record<SocialPlatform, string>>;
 
+/** Where a bare handle like "@baylakeinsights" actually lives on each platform. */
+const HANDLE_URL: Record<SocialPlatform, (handle: string) => string> = {
+  twitter: (h) => `https://x.com/${h}`,
+  instagram: (h) => `https://instagram.com/${h}`,
+  tiktok: (h) => `https://tiktok.com/@${h}`,
+  youtube: (h) => `https://youtube.com/@${h}`,
+};
+
 /**
- * Make a pasted handle or URL clickable: trims it and adds https:// when the
- * admin typed a bare address like "instagram.com/baylakeinsights".
+ * Make a pasted handle or URL clickable: adds https:// to an address like
+ * "instagram.com/baylakeinsights", or builds the page for a bare handle like
+ * "@baylakeinsights" when the platform is known.
  */
-export function normalizeSocialUrl(input: string): string {
+export function normalizeSocialUrl(input: string, platform?: SocialPlatform): string {
   const trimmed = (input ?? "").trim();
   if (!trimmed) return "";
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  return `https://${trimmed.replace(/^\/+/, "")}`;
+  if (trimmed.includes("/")) return `https://${trimmed.replace(/^\/+/, "")}`;
+  const handle = trimmed.replace(/^@+/, "");
+  if (!handle) return "";
+  if (platform) return HANDLE_URL[platform](handle);
+  return `https://${handle}`;
 }
 
 /** Platforms that actually have a link, kept in footer order. */

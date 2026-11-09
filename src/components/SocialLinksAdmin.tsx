@@ -41,7 +41,7 @@ export default function SocialLinksAdmin() {
     setSaving(true);
     const payload = SOCIAL_PLATFORMS.map((platform, i) => ({
       platform: platform.id,
-      url: normalizeSocialUrl(links[platform.id] ?? ""),
+      url: normalizeSocialUrl(links[platform.id] ?? "", platform.id),
       sort_order: i + 1,
     }));
     const { error } = await supabase.from("social_links").upsert(payload, { onConflict: "platform" });
@@ -78,7 +78,7 @@ export default function SocialLinksAdmin() {
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             {SOCIAL_PLATFORMS.map((platform) => {
               const value = links[platform.id] ?? "";
-              const saved = normalizeSocialUrl(value);
+              const saved = normalizeSocialUrl(value, platform.id);
               return (
                 <label key={platform.id} className="block">
                   <span className="font-body text-sm font-medium text-foreground">{platform.label}</span>
@@ -88,7 +88,7 @@ export default function SocialLinksAdmin() {
                       setLinks((prev) => ({ ...prev, [platform.id]: e.target.value }));
                       setDirty(true);
                     }}
-                    placeholder="https://instagram.com/yourhandle"
+                    placeholder="full link or just your handle"
                     className="mt-1.5 bg-background font-body"
                   />
                   <span className="mt-1 block font-body text-xs text-muted-foreground">

@@ -6,25 +6,45 @@ import { normalizeSocialUrl, visibleSocialLinks } from "@/lib/socialLinks";
 const read = (p: string) => readFileSync(path.resolve(process.cwd(), p), "utf8");
 
 describe("normalizeSocialUrl", () => {
-  it("adds https:// to a bare handle or address", () => {
-    expect(normalizeSocialUrl("instagram.com/baylakeinsights")).toBe(
+  it("adds https:// to a pasted address", () => {
+    expect(normalizeSocialUrl("instagram.com/baylakeinsights", "instagram")).toBe(
       "https://instagram.com/baylakeinsights",
     );
-    expect(normalizeSocialUrl("x.com/baylakeinsights")).toBe("https://x.com/baylakeinsights");
+    expect(normalizeSocialUrl("x.com/baylakeinsights", "twitter")).toBe(
+      "https://x.com/baylakeinsights",
+    );
+  });
+
+  it("turns a bare handle into that platform's page", () => {
+    expect(normalizeSocialUrl("baylakeinsights", "instagram")).toBe(
+      "https://instagram.com/baylakeinsights",
+    );
+    expect(normalizeSocialUrl("@baylakeinsights", "tiktok")).toBe(
+      "https://tiktok.com/@baylakeinsights",
+    );
+    expect(normalizeSocialUrl("baylakeinsights", "youtube")).toBe(
+      "https://youtube.com/@baylakeinsights",
+    );
+    expect(normalizeSocialUrl("baylakeinsights", "twitter")).toBe("https://x.com/baylakeinsights");
   });
 
   it("leaves a full address alone and trims stray spaces", () => {
-    expect(normalizeSocialUrl("  https://tiktok.com/@baylakeinsights  ")).toBe(
+    expect(normalizeSocialUrl("  https://tiktok.com/@baylakeinsights  ", "tiktok")).toBe(
       "https://tiktok.com/@baylakeinsights",
     );
-    expect(normalizeSocialUrl("http://youtube.com/@baylakeinsights")).toBe(
+    expect(normalizeSocialUrl("http://youtube.com/@baylakeinsights", "youtube")).toBe(
       "http://youtube.com/@baylakeinsights",
     );
   });
 
-  it("returns an empty string when nothing was typed", () => {
-    expect(normalizeSocialUrl("")).toBe("");
-    expect(normalizeSocialUrl("   ")).toBe("");
+  it("returns an empty string when nothing useful was typed", () => {
+    expect(normalizeSocialUrl("", "instagram")).toBe("");
+    expect(normalizeSocialUrl("   ", "tiktok")).toBe("");
+    expect(normalizeSocialUrl("@@@", "twitter")).toBe("");
+  });
+
+  it("still prefixes https:// when no platform is given", () => {
+    expect(normalizeSocialUrl("baylakeinsights")).toBe("https://baylakeinsights");
   });
 });
 
