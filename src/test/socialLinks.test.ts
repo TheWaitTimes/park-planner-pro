@@ -1,0 +1,56 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { normalizeSocialUrl, visibleSocialLinks } from "@/lib/socialLinks";
+
+const read = (p: string) => readFileSync(path.resolve(process.cwd(), p), "utf8");
+
+describe("normalizeSocialUrl", () => {
+  it("adds https:// to a bare handle or address", () => {
+    expect(normalizeSocialUrl("instagram.com/baylakeinsights")).toBe(
+      "https://instagram.com/baylakeinsights",
+    );
+    expect(normalizeSocialUrl("x.com/baylakeinsights")).toBe("https://x.com/baylakeinsights");
+  });
+
+  it("leaves a full address alone and trims stray spaces", () => {
+    expect(normalizeSocialUrl("  https://tiktok.com/@baylakeinsights  ")).toBe(
+      "https://tiktok.com/@baylakeinsights",
+    );
+    expect(normalizeSocialUrl("http://youtube.com/@baylakeinsights")).toBe(
+      "http://youtube.com/@baylakeinsights",
+    );
+  });
+
+  it("returns an empty string when nothing was typed", () => {
+    expect(normalizeSocialUrl("")).toBe("");
+    expect(normalizeSocialUrl("   ")).toBe("");
+  });
+});
+
+describe("visibleSocialLinks", () => {
+  it("keeps only platforms with a link, in footer order", () => {
+    const shown = visibleSocialLinks({
+      youtube: "https://youtube.com/@baylakeinsights",
+      twitter: "https://x.com/baylakeinsights",
+      instagram: "",
+      tiktok: "   ",
+    });
+    expect(shown.map((p) => p.id)).toEqual(["twitter", "youtube"]);
+  });
+
+  it("shows nothing before any link is saved", () => {
+    expect(visibleSocialLinks({})).toEqual([]);
+    expect(visibleSocialLinks({ twitter: "", instagram: "", tiktok: "", youtube: "" })).toEqual([]);
+  });
+});
+
+describe("social links wiring", () => {
+  it("puts the icon row in the site footer", () => {
+    expect(read("src/pages/Index.tsx")).toMatch(/<SocialLinks \/>/);
+  });
+
+  it("gives admins an editor on the My Pro page", () => {
+    expect(read("src/pages/ProDashboard.tsx")).toMatch(/\{isAdmin && <SocialLinksAdmin \/>\}/);
+  });
+});
