@@ -8,6 +8,13 @@
       "when": 1790863846277,
       "tag": "0000_blog_admin_grants",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794259575698,
+      "tag": "0001_create_social_links",
+      "breakpoints": true
     }
   ]
 }

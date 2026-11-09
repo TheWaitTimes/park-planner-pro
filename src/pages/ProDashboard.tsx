@@ -9,12 +9,13 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSubscription } from "@/hooks/useSubscription";
 import { PLANS } from "@/lib/plans";
 import Paywall from "@/components/Paywall";
+import SocialLinksAdmin from "@/components/SocialLinksAdmin";
 
 const fmtDate = (iso: string | null) =>
   iso ? new Date(iso).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" }) : "—";
 
 export default function ProDashboard() {
-  const { session, loading } = useAuth();
+  const { session, isAdmin, loading } = useAuth();
   const { subscribed, plan, subscriptionEnd, cancelAtPeriodEnd, checking, refresh } = useSubscription();
   const { toast } = useToast();
   const [opening, setOpening] = useState(false);
@@ -112,6 +113,8 @@ export default function ProDashboard() {
             </section>
           </>
         )}
+
+        {isAdmin && <SocialLinksAdmin />}
       </main>
     </div>
   );
