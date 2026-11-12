@@ -155,7 +155,9 @@ export default function Home({
     return () => clearInterval(id);
   }, []);
 
-  const sortedWaits = [...waits].sort((a, b) => b.wait - a.wait);
+  const visibleWaits =
+    parkFilter === "all" ? waits : waits.filter((r) => r.park === parkFilter);
+  const sortedWaits = [...visibleWaits].sort((a, b) => b.wait - a.wait);
   const top5Long = sortedWaits.slice(0, 5);
   const top5Short = [...sortedWaits].reverse().slice(0, 5);
 
