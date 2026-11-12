@@ -387,12 +387,14 @@ function WaitList({
   rows,
   tone,
   loading,
+  emptyLabel = "No live data available.",
 }: {
   title: string;
   icon: React.ReactNode;
   rows: WaitRow[];
   tone: "long" | "short";
   loading: boolean;
+  emptyLabel?: string;
 }) {
   return (
     <div className="rounded-lg border border-border bg-card p-5">
