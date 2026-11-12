@@ -169,6 +169,10 @@ export default function Index({ initialTab = "home" }: { initialTab?: Tab }) {
           <p className="text-muted-foreground text-center font-body text-sm">
             Bay Lake Insights Co. © 2026
           </p>
+          <div className="flex gap-4 text-sm font-body text-muted-foreground">
+            <a href="/privacy" className="hover:underline">Privacy Policy</a>
+            <a href="/terms" className="hover:underline">Terms of Service</a>
+          </div>
         </div>
       </footer>
 
