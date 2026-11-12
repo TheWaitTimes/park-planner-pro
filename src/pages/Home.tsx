@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { CloudRain, Thermometer, ThermometerSun, AlertTriangle, TrendingUp, TrendingDown, RefreshCw, Clock, CalendarRange, CalendarDays, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { PARKS } from "@/data/parks";
 import { cachedFetch, readCacheMeta, TTL_30_MIN } from "@/lib/liveCache";
 
@@ -117,6 +124,7 @@ export default function Home({
   const [loading, setLoading] = useState(true);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [parkFilter, setParkFilter] = useState<string>("all");
 
   const load = async (force = false) => {
     setLoading(true);
