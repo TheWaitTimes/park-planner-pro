@@ -405,7 +405,7 @@ function WaitList({
       {loading ? (
         <div className="text-sm text-muted-foreground">Loading…</div>
       ) : rows.length === 0 ? (
-        <div className="text-sm text-muted-foreground">No live data available.</div>
+        <div className="text-sm text-muted-foreground">{emptyLabel}</div>
       ) : (
         <ul className="divide-y divide-border">
           {rows.map((r, i) => (
