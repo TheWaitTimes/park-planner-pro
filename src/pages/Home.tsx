@@ -241,14 +241,37 @@ export default function Home({
       <section>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <h2 className="font-display text-xl font-semibold text-foreground">Live Wait Times</h2>
-          <span className="text-xs text-muted-foreground">
-            {updated ? `Updated ${updated.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · auto-refresh 30 min` : ""}
-          </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="w-[190px]">
+              <label className="sr-only" htmlFor="waits-park-filter">
+                Filter wait times by park
+              </label>
+              <Select value={parkFilter} onValueChange={setParkFilter}>
+                <SelectTrigger
+                  id="waits-park-filter"
+                  className="font-body min-h-[44px] bg-card"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Parks</SelectItem>
+                  {PARK_IDS.map((p) => (
+                    <SelectItem key={p.id} value={p.name}>
+                      {p.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <span className="text-xs text-muted-foreground">
+              {updated ? `Updated ${updated.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · auto-refresh 30 min` : ""}
+            </span>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <WaitList title="Longest Waits" icon={<TrendingUp className="w-5 h-5 text-warning" />} rows={top5Long} tone="long" loading={loading && !waits.length} />
-          <WaitList title="Shortest Waits" icon={<TrendingDown className="w-5 h-5 text-success" />} rows={top5Short} tone="short" loading={loading && !waits.length} />
+          <WaitList title="Longest Waits" icon={<TrendingUp className="w-5 h-5 text-warning" />} rows={top5Long} tone="long" loading={loading && !waits.length} emptyLabel={parkFilter === "all" ? "No live data available." : `No live waits right now for ${parkFilter}.`} />
+          <WaitList title="Shortest Waits" icon={<TrendingDown className="w-5 h-5 text-success" />} rows={top5Short} tone="short" loading={loading && !waits.length} emptyLabel={parkFilter === "all" ? "No live data available." : `No live waits right now for ${parkFilter}.`} />
         </div>
       </section>
 
