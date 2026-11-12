@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import logo from "@/assets/logo.png";
+import bayLakeLogo from "@/assets/bay-lake-logo.png.asset.json";
 
 const UPDATED = "November 12, 2026";
 const CONTACT = "thewaittimesnewsletter@gmail.com";
@@ -11,7 +11,7 @@ function Shell({ title, children }: { title: string; children: React.ReactNode }
       <header className="border-b border-border">
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src={logo} alt="Bay Lake Insights Co." className="h-10 w-auto" />
+            <img src={bayLakeLogo.url} alt="Bay Lake Insights Co." className="h-10 w-auto" />
           </Link>
           <Link to="/" className="flex items-center gap-1 text-sm font-body hover:underline">
             <ArrowLeft className="w-4 h-4" /> Back to site
